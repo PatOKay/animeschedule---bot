@@ -1,0 +1,95 @@
+:root {
+    --bg-color: #0b0c10;
+    --card-bg: #1f2833;
+    --text-main: #66fcf1;
+    --text-dim: #c5c6c8;
+    --accent: #45a29e;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-dim);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+}
+
+header {
+    padding: 1rem 5%;
+    background: #121212;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.season-badge {
+    background: var(--accent);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.anime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px 5%;
+}
+
+.anime-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.anime-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--text-main);
+}
+
+.card-content {
+    padding: 15px;
+}
+
+.timer {
+    font-size: 1.2rem;
+    color: var(--text-main);
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.genre-tag {
+    background: #45a29e33;
+    color: var(--text-main);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+
+.btn-track {
+    width: 100%;
+    padding: 10px;
+    background: var(--accent);
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--text-main);
+    color: black;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.hidden { display: none; }
