@@ -1,115 +1,107 @@
-const animeData = [
+const animeList = [
   {
     id: 1,
-    title: "Attack on Titan: Final Chapters",
-    description: "The conclusion to humanity’s war against the Titans.",
-    genre: "Action, Drama, Fantasy",
-    season: "Winter 2026",
-    releaseDate: "2026-03-20T17:00:00"
+    title: "Attack on Titan – Final Arc",
+    genre: "Action / Drama",
+    season: "Winter",
+    year: 2026,
+    release: "2026-03-20T17:00:00"
   },
   {
     id: 2,
-    title: "Demon Slayer: Infinity Castle",
-    description: "The final arc begins as Tanjiro faces Muzan.",
-    genre: "Action, Supernatural",
-    season: "Spring 2026",
-    releaseDate: "2026-04-10T18:00:00"
+    title: "Demon Slayer – Infinity Castle",
+    genre: "Action / Supernatural",
+    season: "Spring",
+    year: 2026,
+    release: "2026-04-10T18:00:00"
   },
   {
     id: 3,
-    title: "My Hero Academia Season 8",
-    description: "Heroes and villains clash in the final war.",
-    genre: "Action, Superhero",
-    season: "Summer 2026",
-    releaseDate: "2026-07-05T16:30:00"
+    title: "My Hero Academia – Season 8",
+    genre: "Action / Shounen",
+    season: "Summer",
+    year: 2026,
+    release: "2026-07-05T16:30:00"
   }
 ];
 
-const container = document.getElementById("anime-container");
-const followed = JSON.parse(localStorage.getItem("followedAnime")) || [];
+const grid = document.getElementById("animeGrid");
+const seasonFilter = document.getElementById("seasonFilter");
+const followed = JSON.parse(localStorage.getItem("followed")) || [];
 
 if ("Notification" in window) {
   Notification.requestPermission();
 }
 
-function renderAnime() {
-  container.innerHTML = "";
+function render() {
+  grid.innerHTML = "";
+  const filter = seasonFilter.value;
 
-  animeData.forEach(anime => {
-    const card = document.createElement("div");
-    card.className = "anime-card";
+  animeList
+    .filter(a => filter === "all" || a.season === filter)
+    .forEach(anime => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-    const isFollowing = followed.includes(anime.id);
+      const isFollowing = followed.includes(anime.id);
 
-    card.innerHTML = `
-      <div class="anime-title">${anime.title}</div>
-      <div class="anime-meta">${anime.genre}</div>
-      <div class="anime-meta">${anime.season}</div>
-      <p>${anime.description}</p>
-      <div class="countdown" id="countdown-${anime.id}"></div>
-      <button class="${isFollowing ? "following" : ""}">
-        ${isFollowing ? "Following" : "Follow"}
-      </button>
-    `;
+      card.innerHTML = `
+        <h2>${anime.title}</h2>
+        <div class="meta">${anime.genre}</div>
+        <div class="meta">${anime.season} ${anime.year}</div>
+        <div class="countdown" id="cd-${anime.id}"></div>
+        <button class="${isFollowing ? "active" : ""}">
+          ${isFollowing ? "Following" : "Follow"}
+        </button>
+      `;
 
-    const button = card.querySelector("button");
-    button.addEventListener("click", () => toggleFollow(anime.id, button));
+      card.querySelector("button").onclick = () =>
+        toggleFollow(anime.id);
 
-    container.appendChild(card);
-    updateCountdown(anime);
-  });
+      grid.appendChild(card);
+      startCountdown(anime);
+    });
 }
 
-function toggleFollow(id, button) {
-  const index = followed.indexOf(id);
-
-  if (index === -1) {
-    followed.push(id);
-    button.textContent = "Following";
-    button.classList.add("following");
-  } else {
-    followed.splice(index, 1);
-    button.textContent = "Follow";
-    button.classList.remove("following");
-  }
-
-  localStorage.setItem("followedAnime", JSON.stringify(followed));
+function toggleFollow(id) {
+  const i = followed.indexOf(id);
+  i === -1 ? followed.push(id) : followed.splice(i, 1);
+  localStorage.setItem("followed", JSON.stringify(followed));
+  render();
 }
 
-function updateCountdown(anime) {
-  const countdownEl = document.getElementById(`countdown-${anime.id}`);
+function startCountdown(anime) {
+  const el = document.getElementById(`cd-${anime.id}`);
 
   function tick() {
-    const now = new Date();
-    const release = new Date(anime.releaseDate);
-    const diff = release - now;
-
+    const diff = new Date(anime.release) - new Date();
     if (diff <= 0) {
-      countdownEl.textContent = "Now Available!";
-      notifyUser(anime);
+      el.textContent = "Now Airing";
+      notify(anime);
       return;
     }
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor(diff / 3600000) % 24;
+    const m = Math.floor(diff / 60000) % 60;
 
-    countdownEl.textContent = `${days}d ${hours}h ${minutes}m`;
+    el.textContent = `${d}d ${h}h ${m}m`;
   }
 
   tick();
   setInterval(tick, 60000);
 }
 
-function notifyUser(anime) {
+function notify(anime) {
   if (
     followed.includes(anime.id) &&
     Notification.permission === "granted"
   ) {
-    new Notification("Anime Released!", {
-      body: `${anime.title} is now available to watch!`
+    new Notification("Anime Release Alert", {
+      body: `${anime.title} is now available`
     });
   }
 }
 
-renderAnime();
+seasonFilter.addEventListener("change", render);
+render();
