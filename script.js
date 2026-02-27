@@ -1,68 +1,69 @@
-// Mock Data for Testing
+// Mock Data - In a production app, this would come from an API like Jikan (MyAnimeList)
 const animeData = [
     {
         id: 1,
-        title: "Cyber Neon: 2077",
+        title: "Cyberpunk: Edgerunners S2",
         genre: ["Sci-Fi", "Action"],
-        releaseTime: new Date().getTime() + 500000, 
-        description: "A high-octane journey through a digital wasteland.",
+        releaseDate: new Date().getTime() + 500000, // Roughly 8 mins from now
+        description: "A high-stakes journey through Night City.",
         season: "Spring 2026"
     },
     {
         id: 2,
-        title: "Spirit Chronicles",
-        genre: ["Fantasy", "Slice of Life"],
-        releaseTime: new Date().getTime() + 1000000,
-        description: "Exploring the hidden shrines of the northern mountains.",
+        title: "Fantasy World Solo",
+        genre: ["Adventure", "Fantasy"],
+        releaseDate: new Date().getTime() + 100000000, 
+        description: "Exploring the depths of unknown dungeons.",
         season: "Spring 2026"
     }
 ];
 
-function updateCountdowns() {
-    const now = new Date().getTime();
-    
-    animeData.forEach(anime => {
-        const distance = anime.releaseTime - now;
-        const timerElement = document.getElementById(`timer-${anime.id}`);
-        
-        if (distance < 0) {
-            timerElement.innerHTML = "RELEASED NOW";
-            return;
-        }
-
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        timerElement.innerHTML = `${hours}h ${minutes}m ${seconds}s`;
-    });
+function init() {
+    renderCards();
+    setInterval(updateCountdowns, 1000);
 }
 
 function renderCards() {
     const grid = document.getElementById('anime-grid');
     grid.innerHTML = animeData.map(anime => `
-        <div class="anime-card">
-            <div class="card-content">
-                <h3>${anime.title}</h3>
-                <p><small>${anime.season}</small></p>
-                <div id="timer-${anime.id}" class="timer">--h --m --s</div>
-                <p style="font-size: 0.9rem;">${anime.description}</p>
-                <div>
-                    ${anime.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
-                </div>
-                <button class="btn-track" onclick="showToast('${anime.title}')">Track Release</button>
+        <div class="anime-card" id="anime-${anime.id}">
+            <h3>${anime.title}</h3>
+            <p style="font-size: 0.8rem; color: #c5c6c7;">${anime.season}</p>
+            <div class="genres">
+                ${anime.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
             </div>
+            <p class="description">${anime.description}</p>
+            <div class="countdown" data-time="${anime.releaseDate}">00:00:00</div>
+            <button class="notify-btn" onclick="toggleNotify(${anime.id})">🔔 Remind Me</button>
         </div>
     `).join('');
 }
 
-function showToast(title) {
-    const toast = document.getElementById('notification-toast');
-    toast.innerText = `Alert set for ${title}!`;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3000);
+function updateCountdowns() {
+    document.querySelectorAll('.countdown').forEach(el => {
+        const target = parseInt(el.getAttribute('data-time'));
+        const now = new Date().getTime();
+        const diff = target - now;
+
+        if (diff > 0) {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+            el.innerText = `${hours}h ${mins}m ${secs}s`;
+        } else {
+            el.innerText = "RELEASED NOW";
+            el.style.color = "#ff4d4d";
+        }
+    });
 }
 
-// Initialization
-renderCards();
-setInterval(updateCountdowns, 1000);
+function toggleNotify(id) {
+    const btn = document.querySelector(`#anime-${id} .notify-btn`);
+    const isSubscribed = btn.classList.toggle('active');
+    btn.innerText = isSubscribed ? "✅ Alert Set" : "🔔 Remind Me";
+    
+    // Low latency storage
+    localStorage.setItem(`notify-${id}`, isSubscribed);
+}
+
+init();
