@@ -1,95 +1,75 @@
 :root {
     --bg-color: #0b0c10;
     --card-bg: #1f2833;
-    --text-main: #66fcf1;
-    --text-dim: #c5c6c8;
-    --accent: #45a29e;
+    --accent: #66fcf1;
+    --text-main: #ffffff;
+    --text-dim: #c5c6c7;
 }
 
 body {
     background-color: var(--bg-color);
-    color: var(--text-dim);
-    font-family: 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-main);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
+    padding: 20px;
 }
 
-header {
-    padding: 1rem 5%;
-    background: #121212;
-    border-bottom: 2px solid var(--accent);
+nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding-bottom: 30px;
 }
 
-.season-badge {
-    background: var(--accent);
-    color: white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-weight: bold;
-}
+.logo { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
 
-.anime-grid {
+.grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
-    padding: 20px 5%;
 }
 
 .anime-card {
     background: var(--card-bg);
     border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
+    padding: 15px;
+    transition: transform 0.2s;
     border: 1px solid transparent;
 }
 
 .anime-card:hover {
     transform: translateY(-5px);
-    border-color: var(--text-main);
+    border-color: var(--accent);
 }
 
-.card-content {
-    padding: 15px;
-}
-
-.timer {
+.countdown {
     font-size: 1.2rem;
-    color: var(--text-main);
+    color: var(--accent);
     font-weight: bold;
     margin: 10px 0;
 }
 
 .genre-tag {
-    background: #45a29e33;
-    color: var(--text-main);
-    padding: 2px 8px;
+    background: #45a29e;
+    color: white;
+    font-size: 0.7rem;
+    padding: 3px 8px;
     border-radius: 4px;
-    font-size: 0.8rem;
     margin-right: 5px;
 }
 
-.btn-track {
+.notify-btn {
+    margin-top: 15px;
     width: 100%;
     padding: 10px;
-    background: var(--accent);
-    border: none;
-    color: white;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
     cursor: pointer;
-    margin-top: 10px;
-    border-radius: 4px;
+    border-radius: 5px;
 }
 
-.toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--text-main);
+.notify-btn.active {
+    background: var(--accent);
     color: black;
-    padding: 15px 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
-
-.hidden { display: none; }
