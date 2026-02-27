@@ -1,63 +1,72 @@
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
   margin: 0;
-  background-color: #0f172a;
-  color: #e5e7eb;
+  background: #0b0e14;
+  color: #e6e6e6;
 }
 
-header {
-  text-align: center;
-  padding: 1.5rem;
-  background-color: #020617;
+.top-bar {
+  background: #111827;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #1f2933;
 }
 
-header h1 {
-  margin-bottom: 0.3rem;
+.top-bar h1 {
+  margin: 0;
+  font-size: 1.4rem;
 }
 
-#anime-container {
+.subtitle {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+main {
+  max-width: 1100px;
+  margin: auto;
+}
+
+.schedule-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.2rem;
-  padding: 1.5rem;
+  grid-template-columns: 120px 1fr 120px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #1f2933;
 }
 
-.anime-card {
-  background: #020617;
-  border-radius: 10px;
-  padding: 1rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-
-.anime-card h2 {
-  margin-top: 0;
-  font-size: 1.2rem;
-}
-
-.genre {
-  font-size: 0.9rem;
-  color: #38bdf8;
-}
-
-.countdown {
-  font-size: 1.1rem;
-  margin: 0.8rem 0;
+.time {
+  font-weight: 600;
   color: #22c55e;
 }
 
+.title {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.actions {
+  text-align: right;
+}
+
 button {
-  background: #2563eb;
-  border: none;
-  padding: 0.6rem 1rem;
-  color: white;
+  background: transparent;
+  border: 1px solid #374151;
+  color: #e5e7eb;
+  padding: 0.35rem 0.6rem;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 0.8rem;
 }
 
 button:hover {
-  background: #1d4ed8;
+  background: #1f2937;
 }
