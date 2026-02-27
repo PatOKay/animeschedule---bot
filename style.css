@@ -1,72 +1,75 @@
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+:root {
+    --bg-color: #0b0c10;
+    --card-bg: #1f2833;
+    --accent: #66fcf1;
+    --text-main: #ffffff;
+    --text-dim: #c5c6c7;
 }
 
 body {
-  margin: 0;
-  background: #0b0e14;
-  color: #e6e6e6;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
 }
 
-.top-bar {
-  background: #111827;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #1f2933;
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 30px;
 }
 
-.top-bar h1 {
-  margin: 0;
-  font-size: 1.4rem;
+.logo { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 }
 
-.subtitle {
-  font-size: 0.85rem;
-  color: #9ca3af;
+.anime-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    transition: transform 0.2s;
+    border: 1px solid transparent;
 }
 
-main {
-  max-width: 1100px;
-  margin: auto;
+.anime-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
 }
 
-.schedule-row {
-  display: grid;
-  grid-template-columns: 120px 1fr 120px;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #1f2933;
+.countdown {
+    font-size: 1.2rem;
+    color: var(--accent);
+    font-weight: bold;
+    margin: 10px 0;
 }
 
-.time {
-  font-weight: 600;
-  color: #22c55e;
+.genre-tag {
+    background: #45a29e;
+    color: white;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 5px;
 }
 
-.title {
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+.notify-btn {
+    margin-top: 15px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    cursor: pointer;
+    border-radius: 5px;
 }
 
-.meta {
-  font-size: 0.85rem;
-  color: #9ca3af;
-}
-
-.actions {
-  text-align: right;
-}
-
-button {
-  background: transparent;
-  border: 1px solid #374151;
-  color: #e5e7eb;
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-button:hover {
-  background: #1f2937;
+.notify-btn.active {
+    background: var(--accent);
+    color: black;
 }
