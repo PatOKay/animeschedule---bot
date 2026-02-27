@@ -1,81 +1,86 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const animeData = [
+
+  const animeSchedule = [
     {
       title: "Jujutsu Kaisen",
-      description: "A dark fantasy anime about cursed spirits and sorcerers.",
-      genre: "Action, Supernatural",
+      genre: "Action • Supernatural",
+      description: "Cursed spirits and modern sorcery.",
       season: "Fall 2026",
       releaseDate: "2026-10-05T00:00:00"
     },
     {
       title: "Demon Slayer: New Arc",
-      description: "Tanjiro continues his journey against powerful demons.",
-      genre: "Action, Adventure",
+      genre: "Action • Adventure",
+      description: "The next chapter of Tanjiro's journey.",
       season: "Summer 2026",
       releaseDate: "2026-07-18T00:00:00"
     },
     {
-      title: "Attack on Titan: Movie",
-      description: "The final cinematic conclusion to the AOT saga.",
-      genre: "Drama, Action",
+      title: "Attack on Titan: Final Movie",
+      genre: "Drama • Action",
+      description: "The cinematic conclusion.",
       season: "Winter 2026",
       releaseDate: "2026-12-01T00:00:00"
     }
   ];
 
-  const container = document.getElementById("anime-container");
+  const list = document.getElementById("schedule-list");
 
-  function calculateCountdown(releaseDate) {
-    const now = Date.now();
-    const release = new Date(releaseDate).getTime();
-    const diff = release - now;
+  function formatCountdown(date) {
+    const diff = new Date(date) - Date.now();
+    if (diff <= 0) return "Released";
 
-    if (diff <= 0) return "Released 🎉";
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor(diff / 3600000) % 24;
+    const m = Math.floor(diff / 60000) % 60;
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diff / (1000 * 60)) % 60);
-
-    return `${days}d ${hours}h ${minutes}m`;
+    return `${d}d ${h}h ${m}m`;
   }
 
-  function renderAnime() {
-    container.innerHTML = "";
+  function renderSchedule() {
+    list.innerHTML = "";
 
-    animeData.forEach((anime, index) => {
-      const card = document.createElement("div");
-      card.className = "anime-card";
+    animeSchedule.forEach((anime, index) => {
+      const row = document.createElement("div");
+      row.className = "schedule-row";
 
-      card.innerHTML = `
-        <h2>${anime.title}</h2>
-        <p class="genre">${anime.genre}</p>
-        <p>${anime.description}</p>
-        <p><strong>Season:</strong> ${anime.season}</p>
-        <p class="countdown" data-index="${index}">
-          ${calculateCountdown(anime.releaseDate)}
-        </p>
-        <button data-title="${anime.title}">
-          🔔 Alert Me
-        </button>
+      row.innerHTML = `
+        <div class="time" data-index="${index}">
+          ${formatCountdown(anime.releaseDate)}
+        </div>
+
+        <div>
+          <div class="title">${anime.title}</div>
+          <div class="meta">
+            ${anime.genre} • ${anime.season}<br/>
+            ${anime.description}
+          </div>
+        </div>
+
+        <div class="actions">
+          <button data-title="${anime.title}">
+            🔔 Alert
+          </button>
+        </div>
       `;
 
-      container.appendChild(card);
+      list.appendChild(row);
     });
   }
 
-  function updateCountdowns() {
-    document.querySelectorAll(".countdown").forEach(el => {
-      const index = el.getAttribute("data-index");
-      el.textContent = calculateCountdown(animeData[index].releaseDate);
+  function updateTimers() {
+    document.querySelectorAll(".time").forEach(el => {
+      const index = el.dataset.index;
+      el.textContent = formatCountdown(animeSchedule[index].releaseDate);
     });
   }
 
-  container.addEventListener("click", (e) => {
+  list.addEventListener("click", e => {
     if (e.target.tagName === "BUTTON") {
-      alert(`You will be notified when "${e.target.dataset.title}" is releasing!`);
+      alert(`Alerts enabled for ${e.target.dataset.title}`);
     }
   });
 
-  renderAnime();
-  setInterval(updateCountdowns, 60000);
+  renderSchedule();
+  setInterval(updateTimers, 60000);
 });
