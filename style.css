@@ -1,9 +1,9 @@
 :root {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --accent: #38bdf8;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
+  --bg: #0b0f1a;
+  --panel: #141a2b;
+  --accent: #4cc2ff;
+  --text: #eaeaf0;
+  --muted: #9aa3b2;
 }
 
 * {
@@ -12,68 +12,77 @@
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
 
-header {
+.site-header {
   padding: 1.5rem;
-  text-align: center;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid #1f2a44;
+}
+
+.controls {
+  padding: 1rem;
+}
+
+select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #2b3557;
+  padding: 0.5rem;
+  border-radius: 6px;
 }
 
 main {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-  padding: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.anime-card {
-  background: var(--card);
+.card {
+  background: var(--panel);
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  gap: 0.6rem;
 }
 
-.anime-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+.card h2 {
+  font-size: 1.05rem;
+  margin: 0;
 }
 
-.anime-meta {
-  font-size: 0.85rem;
+.meta {
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
 .countdown {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: bold;
   color: var(--accent);
 }
 
 button {
   margin-top: auto;
-  padding: 0.6rem;
+  background: var(--accent);
   border: none;
   border-radius: 8px;
-  background: var(--accent);
-  color: #000;
+  padding: 0.5rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-button.following {
+button.active {
   background: #22c55e;
 }
 
 footer {
   text-align: center;
   padding: 1rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
