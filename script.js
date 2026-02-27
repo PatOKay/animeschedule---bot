@@ -1,105 +1,69 @@
-(() => {
-  "use strict";
-
-  const animeSchedule = [
+// Mock Data - In a production app, this would come from an API like Jikan (MyAnimeList)
+const animeData = [
     {
-      title: "Jujutsu Kaisen",
-      genre: "Action • Supernatural",
-      description: "Cursed spirits and modern sorcery.",
-      season: "Fall 2026",
-      releaseDate: "2026-10-05T00:00:00Z"
+        id: 1,
+        title: "Cyberpunk: Edgerunners S2",
+        genre: ["Sci-Fi", "Action"],
+        releaseDate: new Date().getTime() + 500000, // Roughly 8 mins from now
+        description: "A high-stakes journey through Night City.",
+        season: "Spring 2026"
     },
     {
-      title: "Demon Slayer: New Arc",
-      genre: "Action • Adventure",
-      description: "The next chapter of Tanjiro's journey.",
-      season: "Summer 2026",
-      releaseDate: "2026-07-18T00:00:00Z"
-    },
-    {
-      title: "Attack on Titan: Final Movie",
-      genre: "Drama • Action",
-      description: "The cinematic conclusion.",
-      season: "Winter 2026",
-      releaseDate: "2026-12-01T00:00:00Z"
+        id: 2,
+        title: "Fantasy World Solo",
+        genre: ["Adventure", "Fantasy"],
+        releaseDate: new Date().getTime() + 100000000, 
+        description: "Exploring the depths of unknown dungeons.",
+        season: "Spring 2026"
     }
-  ];
+];
 
-  function formatCountdown(date) {
-    const diff = new Date(date).getTime() - Date.now();
-    if (isNaN(diff) || diff <= 0) return "Released";
+function init() {
+    renderCards();
+    setInterval(updateCountdowns, 1000);
+}
 
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor(diff / 3600000) % 24;
-    const minutes = Math.floor(diff / 60000) % 60;
-
-    return `${days}d ${hours}h ${minutes}m`;
-  }
-
-  function renderSchedule(container) {
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    animeSchedule.forEach((anime, index) => {
-      const row = document.createElement("div");
-      row.className = "schedule-row";
-
-      row.innerHTML = `
-        <div class="time" data-index="${index}">
-          ${formatCountdown(anime.releaseDate)}
+function renderCards() {
+    const grid = document.getElementById('anime-grid');
+    grid.innerHTML = animeData.map(anime => `
+        <div class="anime-card" id="anime-${anime.id}">
+            <h3>${anime.title}</h3>
+            <p style="font-size: 0.8rem; color: #c5c6c7;">${anime.season}</p>
+            <div class="genres">
+                ${anime.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+            </div>
+            <p class="description">${anime.description}</p>
+            <div class="countdown" data-time="${anime.releaseDate}">00:00:00</div>
+            <button class="notify-btn" onclick="toggleNotify(${anime.id})">🔔 Remind Me</button>
         </div>
+    `).join('');
+}
 
-        <div>
-          <div class="title">${anime.title}</div>
-          <div class="meta">
-            ${anime.genre} • ${anime.season}<br />
-            ${anime.description}
-          </div>
-        </div>
+function updateCountdowns() {
+    document.querySelectorAll('.countdown').forEach(el => {
+        const target = parseInt(el.getAttribute('data-time'));
+        const now = new Date().getTime();
+        const diff = target - now;
 
-        <div class="actions">
-          <button type="button" data-title="${anime.title}">
-            🔔 Alert
-          </button>
-        </div>
-      `;
-
-      container.appendChild(row);
+        if (diff > 0) {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+            el.innerText = `${hours}h ${mins}m ${secs}s`;
+        } else {
+            el.innerText = "RELEASED NOW";
+            el.style.color = "#ff4d4d";
+        }
     });
-  }
+}
 
-  function updateCountdowns(container) {
-    if (!container) return;
+function toggleNotify(id) {
+    const btn = document.querySelector(`#anime-${id} .notify-btn`);
+    const isSubscribed = btn.classList.toggle('active');
+    btn.innerText = isSubscribed ? "✅ Alert Set" : "🔔 Remind Me";
+    
+    // Low latency storage
+    localStorage.setItem(`notify-${id}`, isSubscribed);
+}
 
-    const times = container.querySelectorAll(".time");
-    times.forEach(el => {
-      const index = el.getAttribute("data-index");
-      if (animeSchedule[index]) {
-        el.textContent = formatCountdown(animeSchedule[index].releaseDate);
-      }
-    });
-  }
-
-  function init() {
-    const container = document.getElementById("schedule-list");
-    if (!container) return; // 🚨 prevents GitHub crash
-
-    renderSchedule(container);
-
-    container.addEventListener("click", e => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-
-      alert(`Alerts enabled for ${btn.dataset.title}`);
-    });
-
-    setInterval(() => updateCountdowns(container), 60000);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
-})();
+init();
