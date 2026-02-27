@@ -2,21 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Anime Release Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime Schedule Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
 
-<header>
-  <h1>Anime Release Tracker</h1>
-  <p>Track upcoming anime episodes, seasons, and movies</p>
+<body>
+<header class="site-header">
+  <h1>Anime Schedule Tracker</h1>
+  <p>Upcoming episodes, seasons, and releases</p>
 </header>
 
-<main id="anime-container"></main>
+<section class="controls">
+  <select id="seasonFilter">
+    <option value="all">All Seasons</option>
+    <option value="Winter">Winter</option>
+    <option value="Spring">Spring</option>
+    <option value="Summer">Summer</option>
+    <option value="Fall">Fall</option>
+  </select>
+</section>
+
+<main id="animeGrid"></main>
 
 <footer>
-  <p>Prototype – Frontend Only</p>
+  <p>Frontend Prototype • GitHub Deployable</p>
 </footer>
 
 <script src="script.js"></script>
