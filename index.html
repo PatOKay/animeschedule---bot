@@ -3,30 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniTrack | Release Schedule</title>
+    <title>AniTrack | Real-Time Anime Scheduler</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <nav>
-            <h1>AniTrack</h1>
+            <div class="logo">AniTrack</div>
             <div class="season-badge">Spring 2026 Season</div>
         </nav>
     </header>
 
     <main>
-        <section class="filter-bar">
-            <button class="active">All Releases</button>
-            <button>My Watchlist</button>
+        <section id="featured">
+            <h2>Upcoming Releases</h2>
+            <div id="anime-grid" class="grid">
+                </div>
         </section>
-
-        <div id="anime-grid" class="anime-grid">
-            </div>
     </main>
 
-    <div id="notification-toast" class="toast hidden">
-        New episode is live!
-    </div>
+    <div id="notification-toast" class="hidden">Notification: Episode Released!</div>
 
     <script src="script.js"></script>
 </body>
