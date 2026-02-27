@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Anime Schedule</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniTrack | Real-Time Anime Scheduler</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <nav>
+            <div class="logo">AniTrack</div>
+            <div class="season-badge">Spring 2026 Season</div>
+        </nav>
+    </header>
 
-<header class="top-bar">
-  <h1>Anime Schedule</h1>
-  <span class="subtitle">Upcoming episodes & releases</span>
-</header>
+    <main>
+        <section id="featured">
+            <h2>Upcoming Releases</h2>
+            <div id="anime-grid" class="grid">
+                </div>
+        </section>
+    </main>
 
-<main>
-  <section id="schedule-list">
-    <!-- Rows injected by JS -->
-  </section>
-</main>
+    <div id="notification-toast" class="hidden">Notification: Episode Released!</div>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
