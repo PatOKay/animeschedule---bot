@@ -1,69 +1,115 @@
-// Mock Data - In a production app, this would come from an API like Jikan (MyAnimeList)
 const animeData = [
-    {
-        id: 1,
-        title: "Cyberpunk: Edgerunners S2",
-        genre: ["Sci-Fi", "Action"],
-        releaseDate: new Date().getTime() + 500000, // Roughly 8 mins from now
-        description: "A high-stakes journey through Night City.",
-        season: "Spring 2026"
-    },
-    {
-        id: 2,
-        title: "Fantasy World Solo",
-        genre: ["Adventure", "Fantasy"],
-        releaseDate: new Date().getTime() + 100000000, 
-        description: "Exploring the depths of unknown dungeons.",
-        season: "Spring 2026"
-    }
+  {
+    id: 1,
+    title: "Attack on Titan: Final Chapters",
+    description: "The conclusion to humanity’s war against the Titans.",
+    genre: "Action, Drama, Fantasy",
+    season: "Winter 2026",
+    releaseDate: "2026-03-20T17:00:00"
+  },
+  {
+    id: 2,
+    title: "Demon Slayer: Infinity Castle",
+    description: "The final arc begins as Tanjiro faces Muzan.",
+    genre: "Action, Supernatural",
+    season: "Spring 2026",
+    releaseDate: "2026-04-10T18:00:00"
+  },
+  {
+    id: 3,
+    title: "My Hero Academia Season 8",
+    description: "Heroes and villains clash in the final war.",
+    genre: "Action, Superhero",
+    season: "Summer 2026",
+    releaseDate: "2026-07-05T16:30:00"
+  }
 ];
 
-function init() {
-    renderCards();
-    setInterval(updateCountdowns, 1000);
+const container = document.getElementById("anime-container");
+const followed = JSON.parse(localStorage.getItem("followedAnime")) || [];
+
+if ("Notification" in window) {
+  Notification.requestPermission();
 }
 
-function renderCards() {
-    const grid = document.getElementById('anime-grid');
-    grid.innerHTML = animeData.map(anime => `
-        <div class="anime-card" id="anime-${anime.id}">
-            <h3>${anime.title}</h3>
-            <p style="font-size: 0.8rem; color: #c5c6c7;">${anime.season}</p>
-            <div class="genres">
-                ${anime.genre.map(g => `<span class="genre-tag">${g}</span>`).join('')}
-            </div>
-            <p class="description">${anime.description}</p>
-            <div class="countdown" data-time="${anime.releaseDate}">00:00:00</div>
-            <button class="notify-btn" onclick="toggleNotify(${anime.id})">🔔 Remind Me</button>
-        </div>
-    `).join('');
+function renderAnime() {
+  container.innerHTML = "";
+
+  animeData.forEach(anime => {
+    const card = document.createElement("div");
+    card.className = "anime-card";
+
+    const isFollowing = followed.includes(anime.id);
+
+    card.innerHTML = `
+      <div class="anime-title">${anime.title}</div>
+      <div class="anime-meta">${anime.genre}</div>
+      <div class="anime-meta">${anime.season}</div>
+      <p>${anime.description}</p>
+      <div class="countdown" id="countdown-${anime.id}"></div>
+      <button class="${isFollowing ? "following" : ""}">
+        ${isFollowing ? "Following" : "Follow"}
+      </button>
+    `;
+
+    const button = card.querySelector("button");
+    button.addEventListener("click", () => toggleFollow(anime.id, button));
+
+    container.appendChild(card);
+    updateCountdown(anime);
+  });
 }
 
-function updateCountdowns() {
-    document.querySelectorAll('.countdown').forEach(el => {
-        const target = parseInt(el.getAttribute('data-time'));
-        const now = new Date().getTime();
-        const diff = target - now;
+function toggleFollow(id, button) {
+  const index = followed.indexOf(id);
 
-        if (diff > 0) {
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const secs = Math.floor((diff % (1000 * 60)) / 1000);
-            el.innerText = `${hours}h ${mins}m ${secs}s`;
-        } else {
-            el.innerText = "RELEASED NOW";
-            el.style.color = "#ff4d4d";
-        }
+  if (index === -1) {
+    followed.push(id);
+    button.textContent = "Following";
+    button.classList.add("following");
+  } else {
+    followed.splice(index, 1);
+    button.textContent = "Follow";
+    button.classList.remove("following");
+  }
+
+  localStorage.setItem("followedAnime", JSON.stringify(followed));
+}
+
+function updateCountdown(anime) {
+  const countdownEl = document.getElementById(`countdown-${anime.id}`);
+
+  function tick() {
+    const now = new Date();
+    const release = new Date(anime.releaseDate);
+    const diff = release - now;
+
+    if (diff <= 0) {
+      countdownEl.textContent = "Now Available!";
+      notifyUser(anime);
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+
+    countdownEl.textContent = `${days}d ${hours}h ${minutes}m`;
+  }
+
+  tick();
+  setInterval(tick, 60000);
+}
+
+function notifyUser(anime) {
+  if (
+    followed.includes(anime.id) &&
+    Notification.permission === "granted"
+  ) {
+    new Notification("Anime Released!", {
+      body: `${anime.title} is now available to watch!`
     });
+  }
 }
 
-function toggleNotify(id) {
-    const btn = document.querySelector(`#anime-${id} .notify-btn`);
-    const isSubscribed = btn.classList.toggle('active');
-    btn.innerText = isSubscribed ? "✅ Alert Set" : "🔔 Remind Me";
-    
-    // Low latency storage
-    localStorage.setItem(`notify-${id}`, isSubscribed);
-}
-
-init();
+renderAnime();
