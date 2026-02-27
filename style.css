@@ -1,75 +1,63 @@
-:root {
-    --bg-color: #0b0c10;
-    --card-bg: #1f2833;
-    --accent: #66fcf1;
-    --text-main: #ffffff;
-    --text-dim: #c5c6c7;
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 20px;
+  margin: 0;
+  background-color: #0f172a;
+  color: #e5e7eb;
 }
 
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 30px;
+header {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #020617;
 }
 
-.logo { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+header h1 {
+  margin-bottom: 0.3rem;
+}
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+#anime-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+  padding: 1.5rem;
 }
 
 .anime-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 15px;
-    transition: transform 0.2s;
-    border: 1px solid transparent;
+  background: #020617;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-.anime-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--accent);
+.anime-card h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+}
+
+.genre {
+  font-size: 0.9rem;
+  color: #38bdf8;
 }
 
 .countdown {
-    font-size: 1.2rem;
-    color: var(--accent);
-    font-weight: bold;
-    margin: 10px 0;
+  font-size: 1.1rem;
+  margin: 0.8rem 0;
+  color: #22c55e;
 }
 
-.genre-tag {
-    background: #45a29e;
-    color: white;
-    font-size: 0.7rem;
-    padding: 3px 8px;
-    border-radius: 4px;
-    margin-right: 5px;
+button {
+  background: #2563eb;
+  border: none;
+  padding: 0.6rem 1rem;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.notify-btn {
-    margin-top: 15px;
-    width: 100%;
-    padding: 10px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.notify-btn.active {
-    background: var(--accent);
-    color: black;
+button:hover {
+  background: #1d4ed8;
 }
