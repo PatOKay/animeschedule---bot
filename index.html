@@ -1,54 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Anime Schedule Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-
-<body>
-<header class="site-header">
-  <h1>Anime Schedule Tracker</h1>
-  <p>Upcoming episodes, seasons, and releases</p>
-</header>
-
-<section class="controls">
-  <select id="seasonFilter">
-    <option value="all">All Seasons</option>
-    <option value="Winter">Winter</option>
-    <option value="Spring">Spring</option>
-    <option value="Summer">Summer</option>
-    <option value="Fall">Fall</option>
-  </select>
-</section>
-
-<main id="animeGrid"></main>
-<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniSchedule | Calendar & Tracker</title>
+    <title>AniSchedule Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <div class="logo">AniSchedule</div>
         <div class="controls">
+            <button id="themeToggle">🌓</button>
             <div class="view-toggle">
                 <button id="setGridView" class="active">Grid</button>
                 <button id="setCalendarView">Calendar</button>
             </div>
-            <button id="themeToggle">🌓</button>
-            <input type="text" id="animeSearch" placeholder="Filter...">
+            <input type="text" id="animeSearch" placeholder="Search...">
             <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
         </div>
     </header>
 
     <main>
         <h2 id="viewTitle">Spring 2026 Schedule</h2>
-        <div id="anime-grid" class="grid-layout"></div>
+        <div id="anime-grid" class="grid-layout">
+            </div>
     </main>
 
     <script src="script.js"></script>
