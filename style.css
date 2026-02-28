@@ -1,56 +1,39 @@
-/* ... Previous Styles Remain ... */
-
-/* Calendar Specific Layout */
-.calendar-layout {
-    display: flex !important;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 20px;
-    align-items: flex-start;
+:root[data-theme="dark"] {
+    --bg: #0b0c0d; --card: #1a1c1e; --text: #ffffff; --accent: #3db4f2;
+}
+:root[data-theme="light"] {
+    --bg: #f0f2f5; --card: #ffffff; --text: #1a1919; --accent: #007aff;
 }
 
-.day-column {
-    min-width: 200px;
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 10px;
+body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; }
+
+header { 
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 5%; background: var(--card); border-bottom: 1px solid #333;
 }
 
-.day-column h4 {
-    text-align: center;
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 10px;
+/* This creates the LiveChart style rows/columns */
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px 5%;
 }
 
-/* Minimize cards for Calendar View */
-.calendar-layout .anime-card {
-    margin-bottom: 10px;
-    font-size: 0.8rem;
-}
-
-.calendar-layout .poster-container {
-    height: 120px;
-}
-
-.view-toggle {
+.anime-card {
     background: var(--card);
-    padding: 4px;
-    border-radius: 8px;
-    display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
 }
 
-.view-toggle button {
-    background: none;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 6px;
-    color: var(--text-dim);
-    cursor: pointer;
-}
+.anime-card:hover { transform: scale(1.02); }
 
-.view-toggle button.active {
-    background: var(--accent);
-    color: white;
-}
+.poster { width: 100%; height: 300px; object-fit: cover; }
+
+.info { padding: 15px; }
+
+/* Calendar columns */
+.calendar-layout { display: flex; overflow-x: auto; gap: 10px; padding: 20px; }
+.day-column { min-width: 200px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; }
