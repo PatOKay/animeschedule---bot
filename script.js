@@ -36,36 +36,35 @@ document.getElementById('setGridView').addEventListener('click', (e) => {
 });
 
 document.getElementById('setCalendarView').addEventListener('click', (e) => {
-    switchView('calendar', e.target);
-    renderCalendar(allAnime);
-});
+    switchView('calendar', e.target);let allAnime = [];
+let watchlist = [];
 
-function switchView(view, btn) {
-    currentView = view;
-    document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const grid = document.getElementById('anime-grid');
-    grid.className = view === 'grid' ? 'grid-layout' : 'calendar-layout';
+async function init() {
+    const res = await fetch('https://api.jikan.moe/v4/seasons/now');
+    const json = await res.json();
+    allAnime = json.data;
+    renderGrid(allAnime);
 }
 
-// Update the original render function to handle the 'grid-layout' class
-function render(list) {
-    const grid = document.getElementById('anime-grid');
-    if (currentView === 'calendar') { renderCalendar(list); return; }
-    
-    grid.innerHTML = list.map(anime => {
-        const isSaved = watchlist.some(item => item.mal_id === anime.mal_id);
-        return `
-            <div class="anime-card">
-                <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">♥</button>
-                <img src="${anime.images.jpg.image_url}" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
-                <div style="padding:12px;">
-                    <h3>${anime.title}</h3>
-                    <p>${anime.broadcast.day || 'Unknown Day'}</p>
-                </div>
-            </div>`;
-    }).join('');
+function renderGrid(data) {
+    const container = document.getElementById('anime-grid');
+    container.className = 'grid-layout';
+    container.innerHTML = data.map(anime => `
+        <div class="anime-card">
+            <img class="poster" src="${anime.images.jpg.image_url}">
+            <div class="info">
+                <h3>${anime.title}</h3>
+                <p style="color:var(--accent)">${anime.broadcast.string || 'TBA'}</p>
+                <button onclick="toggleSave(${anime.mal_id})">Add to Watchlist</button>
+            </div>
+        </div>
+    `).join('');
 }
 
-// Initial call
+// Simple Theme Switcher
+document.getElementById('themeToggle').onclick = () => {
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+};
+
 init();
