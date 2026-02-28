@@ -1,88 +1,56 @@
-:root {
-  --bg: #0b0f1a;
-  --panel: #141a2b;
-  --accent: #4cc2ff;
-  --text: #eaeaf0;
-  --muted: #9aa3b2;
+/* ... Previous Styles Remain ... */
+
+/* Calendar Specific Layout */
+.calendar-layout {
+    display: flex !important;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 20px;
+    align-items: flex-start;
 }
 
-* {
-  box-sizing: border-box;
+.day-column {
+    min-width: 200px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 10px;
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+.day-column h4 {
+    text-align: center;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 10px;
 }
 
-.site-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #1f2a44;
+/* Minimize cards for Calendar View */
+.calendar-layout .anime-card {
+    margin-bottom: 10px;
+    font-size: 0.8rem;
 }
 
-.controls {
-  padding: 1rem;
+.calendar-layout .poster-container {
+    height: 120px;
 }
 
-select {
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid #2b3557;
-  padding: 0.5rem;
-  border-radius: 6px;
+.view-toggle {
+    background: var(--card);
+    padding: 4px;
+    border-radius: 8px;
+    display: flex;
 }
 
-main {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+.view-toggle button {
+    background: none;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
 }
 
-.card {
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.card h2 {
-  font-size: 1.05rem;
-  margin: 0;
-}
-
-.meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.countdown {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: var(--accent);
-}
-
-button {
-  margin-top: auto;
-  background: var(--accent);
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button.active {
-  background: #22c55e;
-}
-
-footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.75rem;
-  color: var(--muted);
+.view-toggle button.active {
+    background: var(--accent);
+    color: white;
 }
