@@ -24,7 +24,33 @@
 </section>
 
 <main id="animeGrid"></main>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniSchedule | Calendar & Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">AniSchedule</div>
+        <div class="controls">
+            <div class="view-toggle">
+                <button id="setGridView" class="active">Grid</button>
+                <button id="setCalendarView">Calendar</button>
+            </div>
+            <button id="themeToggle">🌓</button>
+            <input type="text" id="animeSearch" placeholder="Filter...">
+            <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
+        </div>
+    </header>
 
-<script src="script.js"></script>
+    <main>
+        <h2 id="viewTitle">Spring 2026 Schedule</h2>
+        <div id="anime-grid" class="grid-layout"></div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
