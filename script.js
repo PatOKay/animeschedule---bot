@@ -1,125 +1,71 @@
-const grid = document.getElementById("animeGrid");
-const seasonFilter = document.getElementById("seasonFilter");
-const followed = JSON.parse(localStorage.getItem("followed")) || [];
+// ... Previous state variables remain ...
+let currentView = 'grid'; 
 
-const API_URL = "https://graphql.anilist.co";
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-const query = `
-query ($season: MediaSeason, $seasonYear: Int) {
-  Page(perPage: 25) {
-    media(
-      type: ANIME
-      status: RELEASING
-      season: $season
-      seasonYear: $seasonYear
-    ) {
-      id
-      title {
-        romaji
-      }
-      description
-      genres
-      season
-      seasonYear
-      nextAiringEpisode {
-        episode
-        airingAt
-      }
-    }
-  }
-}
-`;
+// 1. Grouping Logic
+function renderCalendar(list) {
+    const grid = document.getElementById('anime-grid');
+    grid.className = 'calendar-layout';
+    grid.innerHTML = '';
 
-async function fetchAnime(season) {
-  const variables = {
-    season: season === "all" ? null : season.toUpperCase(),
-    seasonYear: new Date().getFullYear()
-  };
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables })
-  });
-
-  const data = await response.json();
-  render(data.data.Page.media);
-}
-
-function render(animeList) {
-  grid.innerHTML = "";
-
-  animeList.forEach(anime => {
-    if (!anime.nextAiringEpisode) return;
-
-    const isFollowing = followed.includes(anime.id);
-    const airTime = anime.nextAiringEpisode.airingAt * 1000;
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <h2>${anime.title.romaji}</h2>
-      <div class="meta">${anime.genres.join(", ")}</div>
-      <div class="meta">${anime.season} ${anime.seasonYear}</div>
-      <div class="countdown" id="cd-${anime.id}"></div>
-      <div class="meta">Episode ${anime.nextAiringEpisode.episode}</div>
-      <button class="${isFollowing ? "active" : ""}">
-        ${isFollowing ? "Following" : "Follow"}
-      </button>
-    `;
-
-    card.querySelector("button").onclick = () =>
-      toggleFollow(anime.id);
-
-    grid.appendChild(card);
-    startCountdown(anime.id, airTime, anime.title.romaji);
-  });
-}
-
-function toggleFollow(id) {
-  const index = followed.indexOf(id);
-  index === -1 ? followed.push(id) : followed.splice(index, 1);
-  localStorage.setItem("followed", JSON.stringify(followed));
-  fetchAnime(seasonFilter.value);
-}
-
-function startCountdown(id, airTime, title) {
-  const el = document.getElementById(`cd-${id}`);
-
-  function tick() {
-    const diff = airTime - Date.now();
-    if (diff <= 0) {
-      el.textContent = "Now Airing!";
-      notify(title);
-      return;
-    }
-
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor(diff / 3600000) % 24;
-    const m = Math.floor(diff / 60000) % 60;
-
-    el.textContent = `${d}d ${h}h ${m}m`;
-  }
-
-  tick();
-  setInterval(tick, 60000);
-}
-
-function notify(title) {
-  if (Notification.permission === "granted") {
-    new Notification("Anime Episode Released", {
-      body: `${title} has a new episode out!`
+    DAYS.forEach(day => {
+        const dayAnime = list.filter(a => a.broadcast.day === day);
+        const column = document.createElement('div');
+        column.className = 'day-column';
+        column.innerHTML = `<h4>${day}</h4>`;
+        
+        dayAnime.forEach(anime => {
+            column.innerHTML += `
+                <div class="anime-card">
+                    <div style="padding:8px;">
+                        <strong style="display:block; margin-bottom:4px;">${anime.title}</strong>
+                        <span style="color:var(--accent)">${anime.broadcast.time || 'TBA'}</span>
+                    </div>
+                </div>
+            `;
+        });
+        grid.appendChild(column);
     });
-  }
 }
 
-seasonFilter.addEventListener("change", e => {
-  fetchAnime(e.target.value);
+// 2. View Switching Logic
+document.getElementById('setGridView').addEventListener('click', (e) => {
+    switchView('grid', e.target);
+    render(allAnime);
 });
 
-if ("Notification" in window) {
-  Notification.requestPermission();
+document.getElementById('setCalendarView').addEventListener('click', (e) => {
+    switchView('calendar', e.target);
+    renderCalendar(allAnime);
+});
+
+function switchView(view, btn) {
+    currentView = view;
+    document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const grid = document.getElementById('anime-grid');
+    grid.className = view === 'grid' ? 'grid-layout' : 'calendar-layout';
 }
 
-fetchAnime("all");
+// Update the original render function to handle the 'grid-layout' class
+function render(list) {
+    const grid = document.getElementById('anime-grid');
+    if (currentView === 'calendar') { renderCalendar(list); return; }
+    
+    grid.innerHTML = list.map(anime => {
+        const isSaved = watchlist.some(item => item.mal_id === anime.mal_id);
+        return `
+            <div class="anime-card">
+                <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">♥</button>
+                <img src="${anime.images.jpg.image_url}" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
+                <div style="padding:12px;">
+                    <h3>${anime.title}</h3>
+                    <p>${anime.broadcast.day || 'Unknown Day'}</p>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+// Initial call
+init();
