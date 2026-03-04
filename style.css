@@ -1,56 +1,118 @@
-/* ... Previous Styles Remain ... */
-
-/* Calendar Specific Layout */
-.calendar-layout {
-    display: flex !important;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 20px;
-    align-items: flex-start;
+:root[data-theme="dark"] {
+    --bg: #0b0c0d;
+    --card: #1a1c1e;
+    --text: #ffffff;
+    --text-dim: #9fadbd;
+    --accent: #3db4f2;
 }
 
-.day-column {
-    min-width: 200px;
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 10px;
+:root[data-theme="light"] {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --text: #1a1919;
+    --text-dim: #5c7289;
+    --accent: #007aff;
 }
 
-.day-column h4 {
-    text-align: center;
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 10px;
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    transition: background 0.3s ease;
 }
 
-/* Minimize cards for Calendar View */
-.calendar-layout .anime-card {
-    margin-bottom: 10px;
-    font-size: 0.8rem;
-}
-
-.calendar-layout .poster-container {
-    height: 120px;
-}
-
-.view-toggle {
+header {
     background: var(--card);
-    padding: 4px;
-    border-radius: 8px;
+    padding: 1rem 5%;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.view-toggle button {
-    background: none;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 6px;
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 2rem 5%;
+}
+
+.anime-card {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+}
+
+.anime-card:hover { transform: translateY(-5px); }
+
+.poster-container {
+    position: relative;
+    height: 380px;
+}
+
+.poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* THE LIVECHART TIMER STYLE */
+.countdown-timer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    color: #00ffcc; /* Neon green/blue for visibility */
+    text-align: center;
+    padding: 15px 0 8px 0;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.info { padding: 15px; }
+
+.studio-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.ep-count {
+    background: rgba(255,255,255,0.05);
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 10px 0;
+    font-size: 0.85rem;
+}
+
+.synopsis {
+    font-size: 0.8rem;
     color: var(--text-dim);
-    cursor: pointer;
+    line-height: 1.4;
 }
 
-.view-toggle button.active {
-    background: var(--accent);
-    color: white;
+.save-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    background: rgba(0,0,0,0.6);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 1.2rem;
 }
