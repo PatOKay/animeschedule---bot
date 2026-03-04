@@ -34,18 +34,21 @@
 </head>
 <body>
     <header>
-        <div class="logo">AniSchedule</div>
-        <div class="controls">
-            <div class="view-toggle">
-                <button id="setGridView" class="active">Grid</button>
-                <button id="setCalendarView">Calendar</button>
-            </div>
-            <button id="themeToggle">🌓</button>
-            <input type="text" id="animeSearch" placeholder="Filter...">
-            <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
+    <div class="logo">AniSchedule</div>
+    <div class="controls">
+        <select id="timezoneSelector">
+            <option value="local">Your Local Time</option>
+            <option value="JST">Japan Standard Time (JST)</option>
+        </select>
+        <button id="themeToggle">🌓</button>
+        <div class="view-toggle">
+            <button id="setGridView" class="active">Grid</button>
+            <button id="setCalendarView">Calendar</button>
         </div>
-    </header>
-
+        <input type="text" id="animeSearch" placeholder="Filter...">
+        <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
+    </div>
+</header>
     <main>
         <h2 id="viewTitle">Spring 2026 Schedule</h2>
         <div id="anime-grid" class="grid-layout"></div>
