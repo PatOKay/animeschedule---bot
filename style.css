@@ -117,3 +117,20 @@ header {
     cursor: pointer;
     font-size: 1.2rem;
 }
+#timezoneSelector {
+    background: #2b2d2f;
+    border: 1px solid #444;
+    color: var(--accent);
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.timezone-label {
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: block;
+}
