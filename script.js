@@ -1,27 +1,25 @@
 let allAnime = [];
 let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
-let selectedTimezone = 'local'; // Default state
+let selectedTimezone = 'EST'; 
 
 async function init() {
     const grid = document.getElementById('anime-grid');
-    grid.innerHTML = '<div class="loader">Calculating Time Offsets...</div>';
+    grid.innerHTML = '<div class="loader">Syncing EST Schedule...</div>';
 
     try {
         const response = await fetch('https://api.jikan.moe/v4/seasons/now');
         const json = await response.json();
         allAnime = json.data;
-        
         renderGrid(allAnime);
         setInterval(updateAllCountdowns, 1000);
     } catch (error) {
-        grid.innerHTML = `<div class="error">Failed to load schedule.</div>`;
+        grid.innerHTML = `<div class="error">Data fetch failed.</div>`;
     }
 }
 
-// Listen for Timezone Changes
 document.getElementById('timezoneSelector').addEventListener('change', (e) => {
     selectedTimezone = e.target.value;
-    renderGrid(allAnime); // Re-render to update the day labels if they shifted
+    renderGrid(allAnime);
 });
 
 function renderGrid(data) {
@@ -29,9 +27,12 @@ function renderGrid(data) {
     container.innerHTML = data.map(anime => {
         const isSaved = watchlist.some(item => item.mal_id === anime.mal_id);
         
-        // Jikan broadcast data is in JST
-        const broadcastDay = anime.broadcast.day || "TBA";
-        const broadcastTime = anime.broadcast.time || "00:00";
+        // Broadcast data from API is always JST
+        const jstDay = anime.broadcast.day || "TBA";
+        const jstTime = anime.broadcast.time || "00:00";
+
+        // Convert JST display string to EST for the label
+        const estInfo = convertJSTtoEST(jstDay, jstTime);
 
         return `
             <div class="anime-card">
@@ -40,9 +41,7 @@ function renderGrid(data) {
                     <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">
                         ${isSaved ? '❤️' : '🤍'}
                     </button>
-                    <div class="countdown-timer" 
-                         data-day="${broadcastDay}" 
-                         data-time="${broadcastTime}">
+                    <div class="countdown-timer" data-day="${jstDay}" data-time="${jstTime}">
                         Calculating...
                     </div>
                 </div>
@@ -50,13 +49,31 @@ function renderGrid(data) {
                     <div class="studio-tag">${anime.studios[0]?.name || 'TBA'}</div>
                     <h3>${anime.title_english || anime.title}</h3>
                     <div class="ep-count">
-                        <span class="timezone-label">${selectedTimezone === 'JST' ? 'Japan Time' : 'Local Time'}</span>: 
-                        <strong>${broadcastDay} at ${broadcastTime}</strong>
+                        <span class="timezone-label">${selectedTimezone} Broadcast</span>: 
+                        <strong>${selectedTimezone === 'EST' ? estInfo : jstDay + ' ' + jstTime}</strong>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// Helper to show the converted text in the info section
+function convertJSTtoEST(day, time) {
+    if (day === "TBA" || !time) return "TBA";
+    const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+    const [h, m] = time.split(':').map(Number);
+    
+    // JST is UTC+9 | EST is UTC-5 (14 hour difference)
+    let estHour = h - 14;
+    let dayIndex = days.indexOf(day);
+
+    if (estHour < 0) {
+        estHour += 24;
+        dayIndex = (dayIndex - 1 + 7) % 7;
+    }
+
+    return `${days[dayIndex]} at ${String(estHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 function updateAllCountdowns() {
@@ -72,59 +89,36 @@ function updateAllCountdowns() {
             return;
         }
 
-        // 1. Create a Date object in JST (UTC+9)
-        const nextAirJST = getNextOccurrenceJST(dayStr, timeStr);
-        
-        // 2. Adjust target based on user selection
-        let diff;
-        if (selectedTimezone === 'JST') {
-            diff = nextAirJST - now;
-        } else {
-            // Local calculation happens automatically because 'now' and 'nextAirJST' 
-            // are compared as absolute timestamps (UTC)
-            diff = nextAirJST - now;
-        }
+        const nextAir = getNextOccurrence(dayStr, timeStr);
+        const diff = nextAir - now;
 
-        if (diff <= 0 && diff > -3600000) { // If it aired within the last hour
+        if (diff <= 0 && diff > -3600000) {
             timer.innerText = "AIRING NOW";
             timer.style.color = "#00ffcc";
-        } else if (diff <= -3600000) {
-            timer.innerText = "AIRED";
-            timer.style.color = "#888";
         } else {
             timer.innerText = formatTime(diff);
-            timer.style.color = "";
         }
     });
 }
 
-function getNextOccurrenceJST(dayStr, timeStr) {
+function getNextOccurrence(dayStr, timeStr) {
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
     const targetDay = days.indexOf(dayStr);
     const [hrs, mins] = timeStr.split(':').map(Number);
 
-    let airDate = new Date();
-    
-    // Set current time in JST context (Japan is UTC+9)
-    // We convert our local "now" to a JST equivalent to find the next "Sunday 23:30"
+    // Create target in JST
     const jstNow = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
-    
     let daysUntil = targetDay - jstNow.getDay();
-    if (daysUntil < 0 || (daysUntil === 0 && (jstNow.getHours() > hrs || (jstNow.getHours() === hrs && jstNow.getMinutes() >= mins)))) {
+    if (daysUntil < 0 || (daysUntil === 0 && (jstNow.getHours() > hrs))) {
         daysUntil += 7;
     }
 
-    // This creates the absolute moment in time Japan will see the episode
-    const nextAirJST = new Date(jstNow);
-    nextAirJST.setDate(jstNow.getDate() + daysUntil);
-    nextAirJST.setHours(hrs, mins, 0, 0);
+    const nextAir = new Date(jstNow);
+    nextAir.setDate(jstNow.getDate() + daysUntil);
+    nextAir.setHours(hrs, mins, 0, 0);
 
-    // Convert that JST-relative date back to a standard UTC timestamp for comparison
-    const offset = (9 * 60); // JST is +540 minutes from UTC
-    const utcDate = new Date(nextAirJST.getTime() - (offset * 60000));
-    
-    // Final absolute Date object
-    return nextAirJST; 
+    // This absolute timestamp works regardless of user location
+    return new Date(nextAir.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
 }
 
 function formatTime(ms) {
@@ -135,7 +129,6 @@ function formatTime(ms) {
     return `${d}d ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// (Watchlist toggleSave and other helpers remain same as previous version)
 function toggleSave(id) {
     const anime = allAnime.find(a => a.mal_id === id);
     const index = watchlist.findIndex(item => item.mal_id === id);
