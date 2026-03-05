@@ -1,19 +1,35 @@
-<header>
-    <div class="logo">AniSchedule</div>
-    <div class="controls">
-        <div class="tz-badge">EST Mode (UTC-5)</div>
-        <button id="themeToggle">🌓</button>
-        <input type="text" id="animeSearch" placeholder="Search across seasons...">
-        <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
-    </div>
-</header>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniSchedule | EST Global Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">AniSchedule</div>
+        <div class="controls">
+            <div class="tz-badge">EST Mode</div>
+            <button id="themeToggle" title="Toggle Light/Dark">🌓</button>
+            <input type="text" id="animeSearch" placeholder="Search across all seasons...">
+            <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
+        </div>
+    </header>
 
-<nav class="season-nav">
-    <a href="#season-spring-2026">Spring 2026</a>
-    <a href="#season-winter-2026">Winter 2026</a>
-    <a href="#season-fall-2025">Fall 2025</a>
-    <a href="#season-summer-2025">Summer 2025</a>
-</nav>
+    <nav class="season-nav">
+        <a href="#season-spring-2026">Spring 2026</a>
+        <a href="#season-winter-2026">Winter 2026</a>
+        <a href="#season-fall-2025">Fall 2025</a>
+        <a href="#season-summer-2025">Summer 2025</a>
+    </nav>
 
-<main id="seasonal-container">
+    <main id="seasonal-container">
+        <div class="loader">Initialising multi-season sync...</div>
     </main>
+
+    <button id="backToTop" onclick="scrollToTop()">↑</button>
+
+    <script src="script.js"></script>
+</body>
+</html>
