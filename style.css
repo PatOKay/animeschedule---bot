@@ -54,3 +54,53 @@
     background: var(--accent);
     color: white;
 }
+.season-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    background: #151719;
+    padding: 15px;
+    position: sticky;
+    top: 70px; /* Below the header */
+    z-index: 90;
+    border-bottom: 2px solid var(--accent);
+}
+
+.season-nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.season-nav a:hover { color: var(--accent); }
+
+.season-header {
+    padding: 40px 5% 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+}
+
+.season-header h2 {
+    font-size: 2rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.status-badge {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.8);
+    color: #888;
+    text-align: center;
+    padding: 10px 0;
+    font-weight: bold;
+}
+
+/* Ensure many rows look good */
+.grid-layout {
+    margin-bottom: 60px; /* Space between seasons */
+}
