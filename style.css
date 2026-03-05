@@ -134,3 +134,20 @@ header {
     text-transform: uppercase;
     display: block;
 }
+.tz-badge {
+    background: rgba(61, 180, 242, 0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.countdown-timer {
+    /* Keeping the digital look but ensuring it pops against the poster */
+    background: rgba(11, 12, 13, 0.95);
+    border-top: 2px solid var(--accent);
+}
