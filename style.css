@@ -1,60 +1,53 @@
-/* ... Previous Styles Remain ... */
-
-/* Calendar Specific Layout */
-.calendar-layout {
-    display: flex !important;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 20px;
-    align-items: flex-start;
-}
-
-.day-column {
-    min-width: 200px;
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 10px;
-}
-
-.day-column h4 {
-    text-align: center;
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 10px;
-}
-
-/* Minimize cards for Calendar View */
-.calendar-layout .anime-card {
-    margin-bottom: 10px;
-    font-size: 0.8rem;
-}
-
-.calendar-layout .poster-container {
-    height: 120px;
-}
-
-.view-toggle {
-    background: var(--card);
-    padding: 4px;
-    border-radius: 8px;
-    display: flex;
-}
-
-.view-toggle button {
-    background: none;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 6px;
-    color: var(--text-dim);
-    cursor: pointer;
-}
-
-.view-toggle button.active {
-    background: var(--accent);
-    color: white;
-}
 .season-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    background: #151719;
+    padding: 15px;
+    position: sticky;
+    top: 70px; /* Below the header */
+    z-index: 90;
+    border-bottom: 2px solid var(--accent);
+}
+
+.season-nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.season-nav a:hover { color: var(--accent); }
+
+.season-header {
+    padding: 40px 5% 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+}
+
+.season-header h2 {
+    font-size: 2rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.status-badge {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.8);
+    color: #888;
+    text-align: center;
+    padding: 10px 0;
+    font-weight: bold;
+}
+
+/* Ensure many rows look good */
+.grid-layout {
+    margin-bottom: 60px; /* Space between seasons */
+}.season-nav {
     display: flex;
     justify-content: center;
     gap: 20px;
