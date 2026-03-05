@@ -1,99 +1,53 @@
+:root[data-theme="dark"] {
+    --bg: #0b0c0d; --card: #1a1c1e; --text: #ffffff; --text-dim: #9fadbd; --accent: #3db4f2;
+}
+:root[data-theme="light"] {
+    --bg: #f0f2f5; --card: #ffffff; --text: #1a1919; --text-dim: #5c7289; --accent: #007aff;
+}
+
+body {
+    background-color: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif; margin: 0; scroll-behavior: smooth;
+}
+
+header {
+    background: var(--card); padding: 1rem 5%; display: flex;
+    justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
 .season-nav {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    background: #151719;
-    padding: 15px;
-    position: sticky;
-    top: 70px; /* Below the header */
-    z-index: 90;
-    border-bottom: 2px solid var(--accent);
+    display: flex; justify-content: center; gap: 20px;
+    background: #151719; padding: 12px; position: sticky; top: 68px;
+    z-index: 999; border-bottom: 2px solid var(--accent);
 }
 
-.season-nav a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: color 0.2s;
-}
-
+.season-nav a { color: var(--text-dim); text-decoration: none; font-weight: bold; font-size: 0.85rem; }
 .season-nav a:hover { color: var(--accent); }
 
-.season-header {
-    padding: 40px 5% 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 20px;
+.season-header { padding: 40px 5% 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+.season-header h2 { font-size: 1.8rem; color: var(--accent); text-transform: uppercase; }
+
+.grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; padding: 0 5% 50px; }
+
+.anime-card { background: var(--card); border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+.poster-container { position: relative; height: 360px; }
+.poster { width: 100%; height: 100%; object-fit: cover; }
+
+.countdown-timer, .status-badge {
+    position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.85);
+    color: #00ffcc; text-align: center; padding: 10px 0; font-family: monospace; font-weight: bold;
+}
+.status-badge { color: #888; }
+
+.info { padding: 15px; }
+.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+
+#backToTop {
+    position: fixed; bottom: 20px; right: 20px; background: var(--accent);
+    color: white; border: none; border-radius: 50%; width: 45px; height: 45px;
+    cursor: pointer; display: none; z-index: 1001; font-weight: bold;
 }
 
-.season-header h2 {
-    font-size: 2rem;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.status-badge {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0,0,0,0.8);
-    color: #888;
-    text-align: center;
-    padding: 10px 0;
-    font-weight: bold;
-}
-
-/* Ensure many rows look good */
-.grid-layout {
-    margin-bottom: 60px; /* Space between seasons */
-}.season-nav {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    background: #151719;
-    padding: 15px;
-    position: sticky;
-    top: 70px; /* Below the header */
-    z-index: 90;
-    border-bottom: 2px solid var(--accent);
-}
-
-.season-nav a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.9rem;
-    transition: color 0.2s;
-}
-
-.season-nav a:hover { color: var(--accent); }
-
-.season-header {
-    padding: 40px 5% 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 20px;
-}
-
-.season-header h2 {
-    font-size: 2rem;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.status-badge {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0,0,0,0.8);
-    color: #888;
-    text-align: center;
-    padding: 10px 0;
-    font-weight: bold;
-}
-
-/* Ensure many rows look good */
-.grid-layout {
-    margin-bottom: 60px; /* Space between seasons */
-}
+.tz-badge { border: 1px solid var(--accent); color: var(--accent); padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; }
