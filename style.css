@@ -55,6 +55,7 @@
     color: white;
 }
 
+/* Add this to your previous CSS or replace it */
 .active-nav {
     color: var(--accent) !important;
     border-bottom: 2px solid var(--accent);
