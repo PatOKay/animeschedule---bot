@@ -54,3 +54,22 @@
     background: var(--accent);
     color: white;
 }
+
+/* Add this to your previous CSS or replace it */
+.active-nav {
+    color: var(--accent) !important;
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 5px;
+}
+
+.logo {
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--accent);
+}
+
+.season-nav a {
+    transition: all 0.3s ease;
+    padding: 0 5px;
+}
