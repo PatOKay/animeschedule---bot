@@ -1,10 +1,9 @@
 let allAnime = [];
 let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
-let selectedTimezone = 'EST'; 
 
 async function init() {
     const grid = document.getElementById('anime-grid');
-    grid.innerHTML = '<div class="loader">Syncing EST Schedule...</div>';
+    grid.innerHTML = '<div class="loader">Loading EST Schedule...</div>';
 
     try {
         const response = await fetch('https://api.jikan.moe/v4/seasons/now');
@@ -17,22 +16,15 @@ async function init() {
     }
 }
 
-document.getElementById('timezoneSelector').addEventListener('change', (e) => {
-    selectedTimezone = e.target.value;
-    renderGrid(allAnime);
-});
-
 function renderGrid(data) {
     const container = document.getElementById('anime-grid');
     container.innerHTML = data.map(anime => {
         const isSaved = watchlist.some(item => item.mal_id === anime.mal_id);
-        
-        // Broadcast data from API is always JST
         const jstDay = anime.broadcast.day || "TBA";
         const jstTime = anime.broadcast.time || "00:00";
 
-        // Convert JST display string to EST for the label
-        const estInfo = convertJSTtoEST(jstDay, jstTime);
+        // Logic to show the EST broadcast time on the card
+        const estInfo = getESTBroadcastInfo(jstDay, jstTime);
 
         return `
             <div class="anime-card">
@@ -48,23 +40,19 @@ function renderGrid(data) {
                 <div class="info">
                     <div class="studio-tag">${anime.studios[0]?.name || 'TBA'}</div>
                     <h3>${anime.title_english || anime.title}</h3>
-                    <div class="ep-count">
-                        <span class="timezone-label">${selectedTimezone} Broadcast</span>: 
-                        <strong>${selectedTimezone === 'EST' ? estInfo : jstDay + ' ' + jstTime}</strong>
-                    </div>
+                    <div class="ep-count">EST Broadcast: <strong>${estInfo}</strong></div>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// Helper to show the converted text in the info section
-function convertJSTtoEST(day, time) {
-    if (day === "TBA" || !time) return "TBA";
+function getESTBroadcastInfo(day, time) {
+    if (day === "TBA" || !time || day === "null") return "TBA";
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
     const [h, m] = time.split(':').map(Number);
     
-    // JST is UTC+9 | EST is UTC-5 (14 hour difference)
+    // Convert 14 hours back for EST
     let estHour = h - 14;
     let dayIndex = days.indexOf(day);
 
@@ -72,53 +60,63 @@ function convertJSTtoEST(day, time) {
         estHour += 24;
         dayIndex = (dayIndex - 1 + 7) % 7;
     }
-
     return `${days[dayIndex]} at ${String(estHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 function updateAllCountdowns() {
     const timers = document.querySelectorAll('.countdown-timer');
-    const now = new Date();
+    // Get current time specifically in EST
+    const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
 
     timers.forEach(timer => {
-        const dayStr = timer.getAttribute('data-day');
-        const timeStr = timer.getAttribute('data-time');
+        const jDay = timer.getAttribute('data-day');
+        const jTime = timer.getAttribute('data-time');
 
-        if (!dayStr || dayStr === "null") {
+        if (!jDay || jDay === "null") {
             timer.innerText = "TBA";
             return;
         }
 
-        const nextAir = getNextOccurrence(dayStr, timeStr);
-        const diff = nextAir - now;
+        const nextAirEST = getNextAirEST(jDay, jTime);
+        const diff = nextAirEST - nowEST;
 
         if (diff <= 0 && diff > -3600000) {
             timer.innerText = "AIRING NOW";
             timer.style.color = "#00ffcc";
+        } else if (diff < -3600000) {
+            timer.innerText = "WAITING FOR NEXT WEEK";
         } else {
             timer.innerText = formatTime(diff);
+            timer.style.color = "";
         }
     });
 }
 
-function getNextOccurrence(dayStr, timeStr) {
+function getNextAirEST(jstDay, jstTime) {
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
-    const targetDay = days.indexOf(dayStr);
-    const [hrs, mins] = timeStr.split(':').map(Number);
+    const [h, m] = jstTime.split(':').map(Number);
+    
+    // 1. Find the broadcast moment in EST
+    let estHour = h - 14;
+    let targetDayIdx = days.indexOf(jstDay);
+    if (estHour < 0) {
+        estHour += 24;
+        targetDayIdx = (targetDayIdx - 1 + 7) % 7;
+    }
 
-    // Create target in JST
-    const jstNow = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
-    let daysUntil = targetDay - jstNow.getDay();
-    if (daysUntil < 0 || (daysUntil === 0 && (jstNow.getHours() > hrs))) {
+    // 2. Current time in EST
+    const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+    
+    // 3. Calculate days until that EST moment
+    let daysUntil = targetDayIdx - nowEST.getDay();
+    if (daysUntil < 0 || (daysUntil === 0 && (nowEST.getHours() > estHour || (nowEST.getHours() === estHour && nowEST.getMinutes() >= m)))) {
         daysUntil += 7;
     }
 
-    const nextAir = new Date(jstNow);
-    nextAir.setDate(jstNow.getDate() + daysUntil);
-    nextAir.setHours(hrs, mins, 0, 0);
-
-    // This absolute timestamp works regardless of user location
-    return new Date(nextAir.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+    const nextAir = new Date(nowEST);
+    nextAir.setDate(nowEST.getDate() + daysUntil);
+    nextAir.setHours(estHour, m, 0, 0);
+    return nextAir;
 }
 
 function formatTime(ms) {
