@@ -3,15 +3,28 @@ const urlParams = new URLSearchParams(window.location.search);
 const currentSeason = urlParams.get('season') || 'spring';
 const currentYear = urlParams.get('year') || '2026';
 
-async function init() {
-    document.getElementById('pageTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    
-    // Highlight active link
-    const links = document.querySelectorAll('.season-nav a');
-    links.forEach(link => {
-        if(link.id === `nav-${currentSeason}-${currentYear}`) link.classList.add('active-nav');
-    });
+// 1. Generate Navigation Links (2026 to 2017)
+function generateNav() {
+    const nav = document.getElementById('mainNav');
+    const seasons = ['spring', 'summer', 'fall', 'winter'];
+    let navHTML = '';
 
+    for (let year = 2026; year >= 2017; year--) {
+        seasons.forEach(s => {
+            const isActive = (currentSeason === s && currentYear == year) ? 'active-nav' : '';
+            navHTML += `<a href="index.html?season=${s}&year=${year}" class="${isActive}">${s.toUpperCase()} ${year}</a>`;
+        });
+    }
+    nav.innerHTML = navHTML;
+    
+    // Auto-scroll to the active link
+    const active = document.querySelector('.active-nav');
+    if (active) active.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+}
+
+async function init() {
+    generateNav();
+    document.getElementById('pageTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
     await fetchSeasonData(currentYear, currentSeason);
     setInterval(updateAllCountdowns, 1000);
 }
@@ -23,7 +36,7 @@ async function fetchSeasonData(year, season) {
         const { data } = await res.json();
         renderGrid(data);
     } catch (e) {
-        grid.innerHTML = `<div class="error" style="color:red; padding:20px;">API Error: Could not retrieve data for ${season} ${year}. Please try again later.</div>`;
+        grid.innerHTML = `<div class="error" style="color:red; padding:20px;">API Error: Data for ${season} ${year} is currently unavailable.</div>`;
     }
 }
 
@@ -34,18 +47,9 @@ function renderGrid(data) {
         const jDay = anime.broadcast?.day || "null";
         const jTime = anime.broadcast?.time || "00:00";
         const estStr = getESTBroadcastInfo(jDay, jTime);
-        
-        // Pick Genre Class
-        const primaryGenre = anime.genres[0]?.name.toLowerCase() || "";
-        let genreClass = "genre-default";
-        if (primaryGenre.includes("action")) genreClass = "genre-action";
-        else if (primaryGenre.includes("romance")) genreClass = "genre-romance";
-        else if (primaryGenre.includes("fantasy")) genreClass = "genre-fantasy";
-        else if (primaryGenre.includes("adventure")) genreClass = "genre-adventure";
-        else if (primaryGenre.includes("sci-fi")) genreClass = "genre-scifi";
 
         return `
-            <div class="anime-card ${genreClass}" data-title="${anime.title.toLowerCase()}">
+            <div class="anime-card" data-title="${anime.title.toLowerCase()}">
                 <div class="poster-container">
                     <img class="poster" src="${anime.images.jpg.large_image_url}" loading="lazy">
                     <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">${isSaved ? '❤️' : '🤍'}</button>
@@ -63,7 +67,7 @@ function renderGrid(data) {
 }
 
 function getESTBroadcastInfo(day, time) {
-    if (day === "null" || !time) return "Schedule TBA";
+    if (day === "null" || !time) return "Completed";
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
     let [h, m] = time.split(':').map(Number);
     let estH = h - 14;
