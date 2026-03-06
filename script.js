@@ -1,19 +1,19 @@
 let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
-
-// 1. Get Season/Year from URL (e.g., ?season=fall&year=2025)
 const urlParams = new URLSearchParams(window.location.search);
 const currentSeason = urlParams.get('season') || 'spring';
 const currentYear = urlParams.get('year') || '2026';
 
 async function init() {
-    // Update Page Title and Active Link
     document.getElementById('pageTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    const activeLink = document.getElementById(`nav-${currentSeason}-${currentYear}`);
-    if (activeLink) activeLink.classList.add('active-nav');
+    
+    // Highlight active link
+    const links = document.querySelectorAll('.season-nav a');
+    links.forEach(link => {
+        if(link.id === `nav-${currentSeason}-${currentYear}`) link.classList.add('active-nav');
+    });
 
     await fetchSeasonData(currentYear, currentSeason);
     setInterval(updateAllCountdowns, 1000);
-    updateWatchlistCount();
 }
 
 async function fetchSeasonData(year, season) {
@@ -23,7 +23,7 @@ async function fetchSeasonData(year, season) {
         const { data } = await res.json();
         renderGrid(data);
     } catch (e) {
-        grid.innerHTML = `<div class="error">Failed to load ${season} ${year}. API may be down.</div>`;
+        grid.innerHTML = `<div class="error">API Timeout. Please refresh.</div>`;
     }
 }
 
@@ -41,21 +41,20 @@ function renderGrid(data) {
                     <img class="poster" src="${anime.images.jpg.large_image_url}" loading="lazy">
                     <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">${isSaved ? '❤️' : '🤍'}</button>
                     ${anime.status === 'Currently Airing' ? 
-                        `<div class="countdown-timer" data-day="${jDay}" data-time="${jTime}">Calculating...</div>` : 
+                        `<div class="countdown-timer" data-day="${jDay}" data-time="${jTime}">Calc...</div>` : 
                         `<div class="status-badge">${anime.status}</div>`}
                 </div>
                 <div class="info">
                     <div class="studio-tag">${anime.studios[0]?.name || 'TBA'}</div>
-                    <h3>${anime.title_english || anime.title}</h3>
-                    <div style="font-size:0.8rem; margin-top:5px; color:var(--accent);">${estStr}</div>
+                    <h3 style="font-size: 1rem; margin: 10px 0;">${anime.title_english || anime.title}</h3>
+                    <div style="font-size:0.8rem; color:var(--text-dim);">${estStr}</div>
                 </div>
             </div>`;
     }).join('');
 }
 
-// EST Conversion Math
 function getESTBroadcastInfo(day, time) {
-    if (day === "null" || !time) return "Finished Airing";
+    if (day === "null" || !time) return "Completed";
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
     let [h, m] = time.split(':').map(Number);
     let estH = h - 14;
@@ -64,7 +63,6 @@ function getESTBroadcastInfo(day, time) {
     return `${days[dIdx]} at ${String(estH).padStart(2, '0')}:${String(m).padStart(2, '0')} EST`;
 }
 
-// Global Timer Logic
 function updateAllCountdowns() {
     const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
     document.querySelectorAll('.countdown-timer').forEach(timer => {
@@ -77,8 +75,8 @@ function updateAllCountdowns() {
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            timer.innerText = `${d}d ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            const s = Math.floor((ms = diff % 60000) / 1000);
+            timer.innerText = `${d}d ${String(h).padStart(2, '0')}:${String(Math.floor(m)).padStart(2, '0')}:${String(Math.floor(s)).padStart(2, '0')}`;
         }
     });
 }
@@ -90,15 +88,11 @@ function getNextAirEST(jDay, jTime) {
     let targetD = (days.indexOf(jDay) - (h - 14 < 0 ? 1 : 0) + 7) % 7;
     const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
     let dWait = (targetD - nowEST.getDay() + 7) % 7;
-    if (dWait === 0 && (nowEST.getHours() > estH || (nowEST.getHours() === estH && nowEST.getMinutes() >= m))) dWait = 7;
+    if (dWait === 0 && (nowEST.getHours() > estH)) dWait = 7;
     const next = new Date(nowEST);
     next.setDate(nowEST.getDate() + dWait);
     next.setHours(estH < 0 ? estH + 24 : estH, m, 0, 0);
     return next;
-}
-
-function updateWatchlistCount() {
-    document.getElementById('toggleWatchlist').innerText = `Watchlist (${watchlist.length})`;
 }
 
 init();
