@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniSchedule | EST Archive</title>
+    <title>AniSchedule | LiveTracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,21 +11,32 @@
         <div class="logo" onclick="window.location.href='index.html'">AniSchedule</div>
         <div class="controls">
             <div class="tz-badge">EST Mode</div>
-            <button id="themeToggle">🌓</button>
-            <input type="text" id="animeSearch" placeholder="Search this season...">
-            <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
+            <input type="text" id="animeSearch" placeholder="Filter this season...">
+            <button id="toggleWatchlist">Watchlist (0)</button>
         </div>
     </header>
 
-    <nav class="season-nav" id="mainNav">
-        </nav>
+    <div class="live-selector-container">
+        <div class="live-selector">
+            <button class="nav-arrow" onclick="changeYear(-1)">❮</button>
+            <div class="current-selection">
+                <span id="displayYear">2026</span>
+                <select id="seasonPicker" onchange="updateSeason()">
+                    <option value="winter">Winter</option>
+                    <option value="spring" selected>Spring</option>
+                    <option value="summer">Summer</option>
+                    <option value="fall">Fall</option>
+                </select>
+            </div>
+            <button class="nav-arrow" onclick="changeYear(1)">❯</button>
+        </div>
+    </div>
+
+    <div id="loadingProgress" class="progress-bar"></div>
 
     <main>
-        <div class="season-header">
-            <h2 id="pageTitle">PREPARING...</h2>
-        </div>
         <div id="anime-grid" class="grid-layout">
-            <div class="loader">Connecting to Archive...</div>
+            <div class="loader">Synchronizing with Jikan API...</div>
         </div>
     </main>
 
