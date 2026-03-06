@@ -23,7 +23,7 @@ async function fetchSeasonData(year, season) {
         const { data } = await res.json();
         renderGrid(data);
     } catch (e) {
-        grid.innerHTML = `<div class="error">API Timeout. Please refresh.</div>`;
+        grid.innerHTML = `<div class="error" style="color:red; padding:20px;">API Error: Could not retrieve data for ${season} ${year}. Please try again later.</div>`;
     }
 }
 
@@ -34,33 +34,42 @@ function renderGrid(data) {
         const jDay = anime.broadcast?.day || "null";
         const jTime = anime.broadcast?.time || "00:00";
         const estStr = getESTBroadcastInfo(jDay, jTime);
+        
+        // Pick Genre Class
+        const primaryGenre = anime.genres[0]?.name.toLowerCase() || "";
+        let genreClass = "genre-default";
+        if (primaryGenre.includes("action")) genreClass = "genre-action";
+        else if (primaryGenre.includes("romance")) genreClass = "genre-romance";
+        else if (primaryGenre.includes("fantasy")) genreClass = "genre-fantasy";
+        else if (primaryGenre.includes("adventure")) genreClass = "genre-adventure";
+        else if (primaryGenre.includes("sci-fi")) genreClass = "genre-scifi";
 
         return `
-            <div class="anime-card" data-title="${anime.title.toLowerCase()}">
+            <div class="anime-card ${genreClass}" data-title="${anime.title.toLowerCase()}">
                 <div class="poster-container">
                     <img class="poster" src="${anime.images.jpg.large_image_url}" loading="lazy">
                     <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">${isSaved ? '❤️' : '🤍'}</button>
                     ${anime.status === 'Currently Airing' ? 
-                        `<div class="countdown-timer" data-day="${jDay}" data-time="${jTime}">Calc...</div>` : 
+                        `<div class="countdown-timer" data-day="${jDay}" data-time="${jTime}">Calculating...</div>` : 
                         `<div class="status-badge">${anime.status}</div>`}
                 </div>
                 <div class="info">
                     <div class="studio-tag">${anime.studios[0]?.name || 'TBA'}</div>
-                    <h3 style="font-size: 1rem; margin: 10px 0;">${anime.title_english || anime.title}</h3>
-                    <div style="font-size:0.8rem; color:var(--text-dim);">${estStr}</div>
+                    <h3 style="font-size: 0.95rem; margin: 10px 0; height: 2.4em; overflow: hidden;">${anime.title_english || anime.title}</h3>
+                    <div class="ep-info">${estStr}</div>
                 </div>
             </div>`;
     }).join('');
 }
 
 function getESTBroadcastInfo(day, time) {
-    if (day === "null" || !time) return "Completed";
+    if (day === "null" || !time) return "Schedule TBA";
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
     let [h, m] = time.split(':').map(Number);
     let estH = h - 14;
     let dIdx = days.indexOf(day);
     if (estH < 0) { estH += 24; dIdx = (dIdx - 1 + 7) % 7; }
-    return `${days[dIdx]} at ${String(estH).padStart(2, '0')}:${String(m).padStart(2, '0')} EST`;
+    return `EST: ${days[dIdx]} at ${String(estH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 function updateAllCountdowns() {
@@ -75,8 +84,8 @@ function updateAllCountdowns() {
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((ms = diff % 60000) / 1000);
-            timer.innerText = `${d}d ${String(h).padStart(2, '0')}:${String(Math.floor(m)).padStart(2, '0')}:${String(Math.floor(s)).padStart(2, '0')}`;
+            const s = Math.floor((diff % 60000) / 1000);
+            timer.innerText = `${d}d ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
     });
 }
@@ -88,7 +97,7 @@ function getNextAirEST(jDay, jTime) {
     let targetD = (days.indexOf(jDay) - (h - 14 < 0 ? 1 : 0) + 7) % 7;
     const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
     let dWait = (targetD - nowEST.getDay() + 7) % 7;
-    if (dWait === 0 && (nowEST.getHours() > estH)) dWait = 7;
+    if (dWait === 0 && (nowEST.getHours() > estH || (nowEST.getHours() === estH && nowEST.getMinutes() >= m))) dWait = 7;
     const next = new Date(nowEST);
     next.setDate(nowEST.getDate() + dWait);
     next.setHours(estH < 0 ? estH + 24 : estH, m, 0, 0);
