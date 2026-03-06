@@ -36,6 +36,7 @@ header {
     text-decoration: none;
     font-weight: bold;
     transition: 0.3s;
+    font-size: 0.9rem;
 }
 
 .season-nav a.active-nav {
@@ -44,13 +45,13 @@ header {
 }
 
 .season-header { padding: 30px 5% 10px; }
-.season-header h2 { color: var(--accent); text-transform: uppercase; margin: 0; }
+.season-header h2 { color: var(--accent); text-transform: uppercase; margin: 0; letter-spacing: 1px; }
 
 .grid-layout {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 25px;
-    padding: 20px 5%;
+    padding: 20px 5% 50px;
 }
 
 .anime-card {
@@ -58,7 +59,19 @@ header {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+    border-top: 4px solid transparent; /* Placeholder for genre color */
 }
+
+.anime-card:hover { transform: translateY(-5px); }
+
+/* Genre Border Colors */
+.genre-action { border-top-color: #ff4d4d; }
+.genre-romance { border-top-color: #ff85a2; }
+.genre-fantasy { border-top-color: #a855f7; }
+.genre-adventure { border-top-color: #22c55e; }
+.genre-scifi { border-top-color: #00d4ff; }
+.genre-default { border-top-color: var(--accent); }
 
 .poster-container { position: relative; height: 350px; }
 .poster { width: 100%; height: 100%; object-fit: cover; }
@@ -66,8 +79,9 @@ header {
 .countdown-timer, .status-badge {
     position: absolute; bottom: 0; width: 100%;
     background: rgba(0,0,0,0.85); color: #00ffcc;
-    text-align: center; padding: 10px 0; font-family: monospace;
+    text-align: center; padding: 10px 0; font-family: monospace; font-size: 0.9rem;
 }
 
 .info { padding: 15px; }
-.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; }
+.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+.ep-info { font-size: 0.8rem; color: var(--text-dim); margin-top: 8px; }
