@@ -11,6 +11,7 @@ body {
     color: var(--text);
     font-family: 'Inter', sans-serif;
     margin: 0;
+    overflow-x: hidden;
 }
 
 header {
@@ -24,42 +25,34 @@ header {
 
 .season-nav {
     display: flex;
-    justify-content: flex-start;
-    gap: 25px;
+    gap: 20px;
     background: #151719;
     padding: 15px 5%;
     border-bottom: 2px solid var(--accent);
-    overflow-x: auto; /* Enable horizontal scroll */
-    white-space: nowrap; /* Prevent links from wrapping */
-    scrollbar-width: thin; /* Firefox */
+    overflow-x: auto;
+    white-space: nowrap;
 }
-
-/* Custom Scrollbar for the Nav */
-.season-nav::-webkit-scrollbar { height: 4px; }
-.season-nav::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
 .season-nav a {
     color: var(--text-dim);
     text-decoration: none;
     font-weight: bold;
-    transition: 0.3s;
     font-size: 0.85rem;
-    flex-shrink: 0;
+    padding: 5px 10px;
 }
 
 .season-nav a.active-nav {
     color: var(--accent);
     border-bottom: 2px solid var(--accent);
-    padding-bottom: 2px;
 }
 
 .season-header { padding: 30px 5% 10px; }
-.season-header h2 { color: var(--accent); text-transform: uppercase; margin: 0; letter-spacing: 1px; }
+.season-header h2 { color: var(--accent); text-transform: uppercase; margin: 0; }
 
 .grid-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
     padding: 20px 5% 50px;
 }
 
@@ -67,22 +60,25 @@ header {
     background: var(--card);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     transition: transform 0.2s;
     border-top: 4px solid var(--accent);
 }
 
-.anime-card:hover { transform: translateY(-5px); }
+/* Genre Colors */
+.genre-action { border-top-color: #ff4d4d; }
+.genre-romance { border-top-color: #ff85a2; }
+.genre-fantasy { border-top-color: #a855f7; }
+.genre-adventure { border-top-color: #22c55e; }
 
-.poster-container { position: relative; height: 350px; }
+.poster-container { position: relative; height: 340px; }
 .poster { width: 100%; height: 100%; object-fit: cover; }
 
 .countdown-timer, .status-badge {
     position: absolute; bottom: 0; width: 100%;
-    background: rgba(0,0,0,0.85); color: #00ffcc;
-    text-align: center; padding: 10px 0; font-family: monospace; font-size: 0.9rem;
+    background: rgba(0,0,0,0.8); color: #00ffcc;
+    text-align: center; padding: 8px 0; font-family: monospace;
 }
 
-.info { padding: 15px; }
-.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-.ep-info { font-size: 0.8rem; color: var(--text-dim); margin-top: 8px; }
+.info { padding: 12px; }
+.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; }
+h3 { font-size: 0.9rem; margin: 8px 0; height: 2.5em; overflow: hidden; }
