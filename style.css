@@ -24,24 +24,33 @@ header {
 
 .season-nav {
     display: flex;
-    justify-content: center;
-    gap: 20px;
+    justify-content: flex-start;
+    gap: 25px;
     background: #151719;
-    padding: 12px;
+    padding: 15px 5%;
     border-bottom: 2px solid var(--accent);
+    overflow-x: auto; /* Enable horizontal scroll */
+    white-space: nowrap; /* Prevent links from wrapping */
+    scrollbar-width: thin; /* Firefox */
 }
+
+/* Custom Scrollbar for the Nav */
+.season-nav::-webkit-scrollbar { height: 4px; }
+.season-nav::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
 .season-nav a {
     color: var(--text-dim);
     text-decoration: none;
     font-weight: bold;
     transition: 0.3s;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
 }
 
 .season-nav a.active-nav {
     color: var(--accent);
     border-bottom: 2px solid var(--accent);
+    padding-bottom: 2px;
 }
 
 .season-header { padding: 30px 5% 10px; }
@@ -60,18 +69,10 @@ header {
     overflow: hidden;
     box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     transition: transform 0.2s;
-    border-top: 4px solid transparent; /* Placeholder for genre color */
+    border-top: 4px solid var(--accent);
 }
 
 .anime-card:hover { transform: translateY(-5px); }
-
-/* Genre Border Colors */
-.genre-action { border-top-color: #ff4d4d; }
-.genre-romance { border-top-color: #ff85a2; }
-.genre-fantasy { border-top-color: #a855f7; }
-.genre-adventure { border-top-color: #22c55e; }
-.genre-scifi { border-top-color: #00d4ff; }
-.genre-default { border-top-color: var(--accent); }
 
 .poster-container { position: relative; height: 350px; }
 .poster { width: 100%; height: 100%; object-fit: cover; }
