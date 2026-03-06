@@ -3,40 +3,46 @@ const urlParams = new URLSearchParams(window.location.search);
 const currentSeason = urlParams.get('season') || 'spring';
 const currentYear = urlParams.get('year') || '2026';
 
-// 1. Generate Navigation Links (2026 to 2017)
 function generateNav() {
     const nav = document.getElementById('mainNav');
     const seasons = ['spring', 'summer', 'fall', 'winter'];
-    let navHTML = '';
-
-    for (let year = 2026; year >= 2017; year--) {
+    let html = '';
+    for (let y = 2026; y >= 2017; y--) {
         seasons.forEach(s => {
-            const isActive = (currentSeason === s && currentYear == year) ? 'active-nav' : '';
-            navHTML += `<a href="index.html?season=${s}&year=${year}" class="${isActive}">${s.toUpperCase()} ${year}</a>`;
+            const active = (currentSeason === s && currentYear == y) ? 'active-nav' : '';
+            html += `<a href="index.html?season=${s}&year=${y}" class="${active}">${s.toUpperCase()} ${y}</a>`;
         });
     }
-    nav.innerHTML = navHTML;
-    
-    // Auto-scroll to the active link
-    const active = document.querySelector('.active-nav');
-    if (active) active.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+    nav.innerHTML = html;
+    const activeEl = document.querySelector('.active-nav');
+    if (activeEl) activeEl.scrollIntoView({ inline: 'center' });
 }
 
 async function init() {
     generateNav();
     document.getElementById('pageTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    await fetchSeasonData(currentYear, currentSeason);
+    await fetchWithRetry(currentYear, currentSeason);
     setInterval(updateAllCountdowns, 1000);
 }
 
-async function fetchSeasonData(year, season) {
+// Optimized Fetch with Retry Logic to prevent "API Error"
+async function fetchWithRetry(year, season, retries = 3) {
     const grid = document.getElementById('anime-grid');
     try {
         const res = await fetch(`https://api.jikan.moe/v4/seasons/${year}/${season}`);
+        if (!res.ok) throw new Error('Rate Limited');
         const { data } = await res.json();
         renderGrid(data);
     } catch (e) {
-        grid.innerHTML = `<div class="error" style="color:red; padding:20px;">API Error: Data for ${season} ${year} is currently unavailable.</div>`;
+        if (retries > 0) {
+            grid.innerHTML = `<div class="loader">API Busy... Retrying in 1.5s (${retries} left)</div>`;
+            setTimeout(() => fetchWithRetry(year, season, retries - 1), 1500);
+        } else {
+            grid.innerHTML = `<div class="error" style="color:#ff4d4d; grid-column: 1/-1;">
+                <h3>Unable to load ${season} ${year}</h3>
+                <p>The Jikan API is under heavy load. Please wait 10 seconds and refresh.</p>
+            </div>`;
+        }
     }
 }
 
@@ -46,10 +52,16 @@ function renderGrid(data) {
         const isSaved = watchlist.some(i => i.mal_id === anime.mal_id);
         const jDay = anime.broadcast?.day || "null";
         const jTime = anime.broadcast?.time || "00:00";
-        const estStr = getESTBroadcastInfo(jDay, jTime);
+        
+        const genreName = anime.genres[0]?.name.toLowerCase() || "";
+        let gClass = "genre-default";
+        if (genreName.includes("action")) gClass = "genre-action";
+        else if (genreName.includes("romance")) gClass = "genre-romance";
+        else if (genreName.includes("fantasy")) gClass = "genre-fantasy";
+        else if (genreName.includes("adventure")) gClass = "genre-adventure";
 
         return `
-            <div class="anime-card" data-title="${anime.title.toLowerCase()}">
+            <div class="anime-card ${gClass}" data-title="${anime.title.toLowerCase()}">
                 <div class="poster-container">
                     <img class="poster" src="${anime.images.jpg.large_image_url}" loading="lazy">
                     <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">${isSaved ? '❤️' : '🤍'}</button>
@@ -59,8 +71,8 @@ function renderGrid(data) {
                 </div>
                 <div class="info">
                     <div class="studio-tag">${anime.studios[0]?.name || 'TBA'}</div>
-                    <h3 style="font-size: 0.95rem; margin: 10px 0; height: 2.4em; overflow: hidden;">${anime.title_english || anime.title}</h3>
-                    <div class="ep-info">${estStr}</div>
+                    <h3>${anime.title_english || anime.title}</h3>
+                    <div style="font-size:0.75rem; color:var(--text-dim);">${getESTBroadcastInfo(jDay, jTime)}</div>
                 </div>
             </div>`;
     }).join('');
@@ -83,7 +95,6 @@ function updateAllCountdowns() {
         const diff = nextAir - nowEST;
         if (diff <= 0 && diff > -3600000) {
             timer.innerText = "AIRING NOW";
-            timer.style.color = "#00ffcc";
         } else {
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
@@ -101,7 +112,7 @@ function getNextAirEST(jDay, jTime) {
     let targetD = (days.indexOf(jDay) - (h - 14 < 0 ? 1 : 0) + 7) % 7;
     const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
     let dWait = (targetD - nowEST.getDay() + 7) % 7;
-    if (dWait === 0 && (nowEST.getHours() > estH || (nowEST.getHours() === estH && nowEST.getMinutes() >= m))) dWait = 7;
+    if (dWait === 0 && (nowEST.getHours() > (estH < 0 ? estH + 24 : estH))) dWait = 7;
     const next = new Date(nowEST);
     next.setDate(nowEST.getDate() + dWait);
     next.setHours(estH < 0 ? estH + 24 : estH, m, 0, 0);
