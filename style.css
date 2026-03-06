@@ -1,4 +1,4 @@
-:root[data-theme="dark"] {
+:root {
     --bg: #0b0c0d;
     --card: #1a1c1e;
     --text: #ffffff;
@@ -6,79 +6,63 @@
     --accent: #3db4f2;
 }
 
-body {
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    overflow-x: hidden;
-}
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; }
 
 header {
-    background: var(--card);
-    padding: 1rem 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: #151719; padding: 15px 5%; display: flex;
+    justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2d2f31;
 }
 
-.season-nav {
-    display: flex;
-    gap: 20px;
-    background: #151719;
-    padding: 15px 5%;
-    border-bottom: 2px solid var(--accent);
-    overflow-x: auto;
-    white-space: nowrap;
+/* LiveChart Selector Styling */
+.live-selector-container {
+    background: #151719; padding: 20px 0;
+    display: flex; justify-content: center; border-bottom: 1px solid #2d2f31;
 }
 
-.season-nav a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 0.85rem;
-    padding: 5px 10px;
+.live-selector {
+    display: flex; align-items: center; gap: 20px;
+    background: var(--card); border-radius: 8px; padding: 10px 25px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.season-nav a.active-nav {
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
+.current-selection { text-align: center; }
+#displayYear { font-size: 0.8rem; color: var(--text-dim); display: block; }
+#seasonPicker {
+    background: transparent; color: white; border: none;
+    font-size: 1.5rem; font-weight: bold; cursor: pointer; outline: none;
 }
 
-.season-header { padding: 30px 5% 10px; }
-.season-header h2 { color: var(--accent); text-transform: uppercase; margin: 0; }
+.nav-arrow {
+    background: none; border: none; color: var(--accent);
+    font-size: 1.5rem; cursor: pointer; padding: 5px 15px;
+}
 
+/* Grid & Cards */
 .grid-layout {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-    padding: 20px 5% 50px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px; padding: 30px 5%;
 }
 
 .anime-card {
-    background: var(--card);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.2s;
-    border-top: 4px solid var(--accent);
+    background: var(--card); border-radius: 12px; overflow: hidden;
+    transition: 0.2s; border-bottom: 3px solid var(--accent);
 }
 
-/* Genre Colors */
-.genre-action { border-top-color: #ff4d4d; }
-.genre-romance { border-top-color: #ff85a2; }
-.genre-fantasy { border-top-color: #a855f7; }
-.genre-adventure { border-top-color: #22c55e; }
-
-.poster-container { position: relative; height: 340px; }
+.poster-container { position: relative; height: 360px; }
 .poster { width: 100%; height: 100%; object-fit: cover; }
 
-.countdown-timer, .status-badge {
+.countdown-timer {
     position: absolute; bottom: 0; width: 100%;
-    background: rgba(0,0,0,0.8); color: #00ffcc;
-    text-align: center; padding: 8px 0; font-family: monospace;
+    background: rgba(0,0,0,0.85); color: #00ffcc;
+    text-align: center; padding: 10px 0; font-family: monospace;
 }
 
-.info { padding: 12px; }
-.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; }
-h3 { font-size: 0.9rem; margin: 8px 0; height: 2.5em; overflow: hidden; }
+.info { padding: 15px; }
+h3 { margin: 10px 0; font-size: 1rem; line-height: 1.3; height: 2.6em; overflow: hidden; }
+.studio { color: var(--accent); font-size: 0.75rem; font-weight: bold; }
+
+.progress-bar {
+    height: 3px; background: var(--accent); width: 0%;
+    transition: width 0.4s ease;
+}
