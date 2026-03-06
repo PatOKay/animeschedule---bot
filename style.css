@@ -1,75 +1,73 @@
-/* ... Previous Styles Remain ... */
-
-/* Calendar Specific Layout */
-.calendar-layout {
-    display: flex !important;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 20px;
-    align-items: flex-start;
+:root[data-theme="dark"] {
+    --bg: #0b0c0d;
+    --card: #1a1c1e;
+    --text: #ffffff;
+    --text-dim: #9fadbd;
+    --accent: #3db4f2;
 }
 
-.day-column {
-    min-width: 200px;
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 10px;
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
 }
 
-.day-column h4 {
-    text-align: center;
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 10px;
-}
-
-/* Minimize cards for Calendar View */
-.calendar-layout .anime-card {
-    margin-bottom: 10px;
-    font-size: 0.8rem;
-}
-
-.calendar-layout .poster-container {
-    height: 120px;
-}
-
-.view-toggle {
+header {
     background: var(--card);
-    padding: 4px;
-    border-radius: 8px;
+    padding: 1rem 5%;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.view-toggle button {
-    background: none;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 6px;
-    color: var(--text-dim);
-    cursor: pointer;
-}
-
-.view-toggle button.active {
-    background: var(--accent);
-    color: white;
-}
-
-/* Add this to your previous CSS or replace it */
-.active-nav {
-    color: var(--accent) !important;
+.season-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    background: #151719;
+    padding: 12px;
     border-bottom: 2px solid var(--accent);
-    padding-bottom: 5px;
-}
-
-.logo {
-    cursor: pointer;
-    font-weight: 800;
-    font-size: 1.5rem;
-    color: var(--accent);
 }
 
 .season-nav a {
-    transition: all 0.3s ease;
-    padding: 0 5px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
 }
+
+.season-nav a.active-nav {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+}
+
+.season-header { padding: 30px 5% 10px; }
+.season-header h2 { color: var(--accent); text-transform: uppercase; margin: 0; }
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 20px 5%;
+}
+
+.anime-card {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.poster-container { position: relative; height: 350px; }
+.poster { width: 100%; height: 100%; object-fit: cover; }
+
+.countdown-timer, .status-badge {
+    position: absolute; bottom: 0; width: 100%;
+    background: rgba(0,0,0,0.85); color: #00ffcc;
+    text-align: center; padding: 10px 0; font-family: monospace;
+}
+
+.info { padding: 15px; }
+.studio-tag { color: var(--accent); font-size: 0.7rem; font-weight: bold; }
