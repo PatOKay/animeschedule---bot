@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AniSchedule | EST Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-theme="dark">
     <header>
         <div class="logo">AniSchedule</div>
         <div class="controls">
             <div class="tz-badge">EST Mode</div>
-            <input type="text" id="animeSearch" placeholder="Filter this season...">
+            <input type="text" id="animeSearch" placeholder="Search this season...">
             <button id="toggleWatchlist">Watchlist (0)</button>
         </div>
     </header>
@@ -34,7 +34,7 @@
 
     <main>
         <div id="anime-grid" class="grid-layout">
-            <div class="loader">Connecting to Archive...</div>
+            <div class="loader">Loading Archive...</div>
         </div>
     </main>
 
