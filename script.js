@@ -9,63 +9,79 @@ function renderCalendar(list) {
     grid.className = 'calendar-layout';
     grid.innerHTML = '';
 
-    DAYS.forEach(day => {
-        const dayAnime = list.filter(a => a.broadcast.day === day);
-        const column = document.createElement('div');
-        column.className = 'day-column';
-        column.innerHTML = `<h4>${day}</h4>`;
-        
-        dayAnime.forEach(anime => {
-            column.innerHTML += `
-                <div class="anime-card">
-                    <div style="padding:8px;">
-                        <strong style="display:block; margin-bottom:4px;">${anime.title}</strong>
-                        <span style="color:var(--accent)">${anime.broadcast.time || 'TBA'}</span>
-                    </div>
-                </div>
-            `;
-        });
-        grid.appendChild(column);
+    DAYS.forEach(day => {let currentYear = 2026;
+let currentSeason = 'spring';
+let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
+
+async function init() {
+    const params = new URLSearchParams(window.location.search);
+    currentYear = parseInt(params.get('year')) || 2026;
+    currentSeason = params.get('season') || 'spring';
+    
+    document.getElementById('displayYear').innerText = currentYear;
+    document.getElementById('seasonPicker').value = currentSeason;
+    
+    await loadSeasonalData();
+    // This ensures the timer starts immediately and repeats every second
+    updateTimers(); 
+    setInterval(updateTimers, 1000);
+}
+
+// ... (keep your changeYear and updateSeason functions here)
+
+function updateTimers() {
+    // Get current time in EST
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+
+    document.querySelectorAll('.countdown-timer').forEach(timer => {
+        const day = timer.dataset.day;
+        const time = timer.dataset.time;
+
+        // Skip if there's no schedule data
+        if (!day || day === "null" || !time || time === "00:00") {
+            timer.innerText = "Schedule TBA";
+            return;
+        }
+
+        const nextAir = getNextAirEST(day, time);
+        const diff = nextAir - now;
+
+        if (diff <= 0 && diff > -3600000) {
+            timer.innerText = "AIRING NOW";
+            timer.style.color = "#00ffcc";
+        } else {
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            
+            // Fixed formatting to prevent "Calculating..." loop
+            timer.innerText = `${d}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+            timer.style.color = "#00ffcc";
+        }
     });
 }
 
-// 2. View Switching Logic
-document.getElementById('setGridView').addEventListener('click', (e) => {
-    switchView('grid', e.target);
-    render(allAnime);
-});
-
-document.getElementById('setCalendarView').addEventListener('click', (e) => {
-    switchView('calendar', e.target);
-    renderCalendar(allAnime);
-});
-
-function switchView(view, btn) {
-    currentView = view;
-    document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const grid = document.getElementById('anime-grid');
-    grid.className = view === 'grid' ? 'grid-layout' : 'calendar-layout';
-}
-
-// Update the original render function to handle the 'grid-layout' class
-function render(list) {
-    const grid = document.getElementById('anime-grid');
-    if (currentView === 'calendar') { renderCalendar(list); return; }
+function getNextAirEST(jDay, jTime) {
+    const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+    const [h, m] = jTime.split(':').map(Number);
     
-    grid.innerHTML = list.map(anime => {
-        const isSaved = watchlist.some(item => item.mal_id === anime.mal_id);
-        return `
-            <div class="anime-card">
-                <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">♥</button>
-                <img src="${anime.images.jpg.image_url}" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
-                <div style="padding:12px;">
-                    <h3>${anime.title}</h3>
-                    <p>${anime.broadcast.day || 'Unknown Day'}</p>
-                </div>
-            </div>`;
-    }).join('');
+    // Convert JST to EST (-14 hours)
+    let estH = h - 14;
+    let targetD = (days.indexOf(jDay) - (h - 14 < 0 ? 1 : 0) + 7) % 7;
+    
+    const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+    let dWait = (targetD - nowEST.getDay() + 7) % 7;
+    
+    // If it's today but the time has passed, move to next week
+    if (dWait === 0 && (nowEST.getHours() > (estH < 0 ? estH + 24 : estH))) {
+        dWait = 7;
+    }
+    
+    const next = new Date(nowEST);
+    next.setDate(nowEST.getDate() + dWait);
+    next.setHours(estH < 0 ? estH + 24 : estH, m, 0, 0);
+    return next;
 }
 
-// Initial call
 init();
