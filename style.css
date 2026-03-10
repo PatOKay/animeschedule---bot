@@ -1,7 +1,13 @@
-/* FORCE DARK THEME */
+:root {
+    --bg: #0b0c0d;
+    --card: #1a1c1e;
+    --text: #ffffff;
+    --accent: #3db4f2;
+}
+
 body {
-    background-color: #0b0c0d !important;
-    color: #ffffff;
+    background-color: var(--bg) !important;
+    color: var(--text);
     font-family: 'Inter', sans-serif;
     margin: 0;
 }
@@ -13,6 +19,15 @@ header {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #2d2f31;
+}
+
+#globalSearch {
+    background: #2d2f31;
+    border: 1px solid #444;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    width: 250px;
 }
 
 .live-selector-container {
@@ -27,35 +42,29 @@ header {
     display: flex;
     align-items: center;
     gap: 20px;
-    background: #1a1c1e;
+    background: var(--card);
     border-radius: 8px;
     padding: 10px 25px;
 }
 
-#seasonPicker {
-    background: transparent;
-    color: white;
-    border: none;
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-}
-
 .grid-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 25px;
-    padding: 30px 5%;
+    padding: 20px 5%;
 }
 
 .anime-card {
-    background: #1a1c1e;
+    background: var(--card);
     border-radius: 12px;
     overflow: hidden;
-    border-bottom: 3px solid #3db4f2;
+    transition: transform 0.2s;
+    border-bottom: 3px solid var(--accent);
 }
 
-.poster-container { position: relative; height: 350px; }
+.anime-card:hover { transform: translateY(-5px); }
+
+.poster-container { position: relative; height: 340px; }
 .poster { width: 100%; height: 100%; object-fit: cover; }
 
 .countdown-timer {
@@ -65,9 +74,9 @@ header {
     background: rgba(0,0,0,0.85);
     color: #00ffcc;
     text-align: center;
-    padding: 10px 0;
+    padding: 8px 0;
     font-family: monospace;
 }
 
-.info { padding: 15px; }
-h3 { margin: 10px 0; font-size: 1rem; height: 2.6em; overflow: hidden; }
+.info { padding: 12px; }
+h3 { margin: 5px 0; font-size: 0.9rem; height: 2.4em; overflow: hidden; }
