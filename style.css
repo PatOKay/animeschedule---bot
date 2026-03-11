@@ -68,3 +68,33 @@ header {
 
 .info { padding: 12px; }
 h3 { margin: 5px 0; font-size: 0.9rem; height: 2.4em; overflow: hidden; }
+
+/* Trailer Styling */
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    background: #000;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.no-trailer {
+    background: #252729;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    margin-top: 20px;
+    color: var(--text-dim);
+}
