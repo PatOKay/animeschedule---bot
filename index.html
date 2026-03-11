@@ -1,72 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Anime Schedule Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-
-<body>
-<header class="site-header">
-  <h1>Anime Schedule Tracker</h1>
-  <p>Upcoming episodes, seasons, and releases</p>
-</header>
-
-<section class="controls">
-  <select id="seasonFilter">
-    <option value="all">All Seasons</option>
-    <option value="Winter">Winter</option>
-    <option value="Spring">Spring</option>
-    <option value="Summer">Summer</option>
-    <option value="Fall">Fall</option>
-  </select>
-</section>
-
-<main id="animeGrid"></main>
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniSchedule | Calendar & Tracker</title>
+    <title>AniSchedule | Ultimate EST Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-theme="dark">
     <header>
-        <div class="logo">AniSchedule</div>
+        <div class="logo" onclick="location.reload()">AniSchedule</div>
         <div class="controls">
-            <div class="view-toggle">
-                <button id="setGridView" class="active">Grid</button>
-                <button id="setCalendarView">Calendar</button>
+            <div class="tz-badge">EST Mode</div>
+            <input type="text" id="globalSearch" placeholder="Search any anime (Global)...">
+            
+            <div class="filter-wrapper">
+                <button id="filterBtn" class="icon-btn">☰ Sort</button>
+                <div id="filterMenu" class="filter-content">
+                    <button onclick="sortData('pop')">Most Popular</button>
+                    <button onclick="sortData('score')">Highest Rated</button>
+                    <button onclick="sortData('alpha')">Alphabetical (A-Z)</button>
+                    <button onclick="sortData('newest')">Release: Newest</button>
+                    <button onclick="sortData('oldest')">Release: Oldest</button>
+                </div>
             </div>
-            <button id="themeToggle">🌓</button>
-            <input type="text" id="animeSearch" placeholder="Filter...">
-            <button id="toggleWatchlist" class="primary-btn">Watchlist (0)</button>
+
+            <button id="toggleWatchlist">Watchlist (<span id="wCount">0</span>)</button>
         </div>
-      <div class="controls">
-    <div class="tz-badge">EST Mode</div>
-    <input type="text" id="globalSearch" placeholder="Search any anime (Global)...">
-    
-    <div class="filter-wrapper">
-        <button id="filterBtn" class="icon-btn">☰ Sort</button>
-        <div id="filterMenu" class="filter-content">
-            <button onclick="sortData('pop')">Most Popular</button>
-            <button onclick="sortData('score')">Highest Rated</button>
-            <button onclick="sortData('alpha')">Alphabetical (A-Z)</button>
-            <button onclick="sortData('newest')">Release: Newest</button>
-            <button onclick="sortData('oldest')">Release: Oldest</button>
+    </header>
+
+    <div class="live-selector-container" id="navBar">
+        <div class="live-selector">
+            <button class="nav-arrow" onclick="changeYear(-1)">❮</button>
+            <div class="current-selection">
+                <span id="displayYear">2026</span>
+                <select id="seasonPicker" onchange="updateSeason()">
+                    <option value="winter">Winter</option>
+                    <option value="spring" selected>Spring</option>
+                    <option value="summer">Summer</option>
+                    <option value="fall">Fall</option>
+                </select>
+            </div>
+            <button class="nav-arrow" onclick="changeYear(1)">❯</button>
         </div>
     </div>
 
-    <button id="toggleWatchlist">Watchlist (<span id="wCount">0</span>)</button>
-</div>
-    </header>
-
     <main>
-        <h2 id="viewTitle">Spring 2026 Schedule</h2>
-        <div id="anime-grid" class="grid-layout"></div>
+        <h2 id="viewTitle" style="padding: 0 5%; color: #3db4f2;">SPRING 2026</h2>
+        <div id="anime-grid" class="grid-layout">
+            <div class="loader">Initializing Archive...</div>
+        </div>
     </main>
+
+    <div id="animeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <button id="snapTop" title="Go to top">▲</button>
 
     <script src="script.js"></script>
 </body>
