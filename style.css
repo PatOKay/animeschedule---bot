@@ -87,3 +87,51 @@
     70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 }
+
+/* Filter Menu Styling */
+.filter-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.icon-btn {
+    background: #2d2f31;
+    color: white;
+    border: 1px solid #444;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.filter-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #1a1c1e;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    z-index: 1001;
+    border-radius: 8px;
+    border: 1px solid #3db4f2;
+    margin-top: 5px;
+}
+
+.filter-content button {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.filter-content button:hover {
+    background-color: #2d2f31;
+    color: #3db4f2;
+}
+
+.show { display: block; }
