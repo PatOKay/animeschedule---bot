@@ -75,8 +75,17 @@ function renderCards(data) {
 function showDetails(index) {
     const anime = currentData[index];
     const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
+    const modal = document.getElementById('animeModal');
     const body = document.getElementById('modalBody');
     
+    // Check if trailer exists
+    const trailerHtml = anime.trailer?.youtube_id 
+        ? `<div class="video-container">
+            <iframe src="https://www.youtube.com/embed/${anime.trailer.youtube_id}" 
+                    allowfullscreen></iframe>
+           </div>`
+        : `<div class="no-trailer">📺 Trailer not available for this title</div>`;
+
     body.innerHTML = `
         <div style="display:flex; gap:25px; flex-wrap:wrap;">
             <img src="${anime.images.jpg.large_image_url}" style="width:230px; border-radius:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
@@ -86,15 +95,24 @@ function showDetails(index) {
                     <button class="heart-btn ${isAdded ? 'active' : ''}" onclick="toggleHeart(event, ${index})">❤</button>
                 </div>
                 <p style="margin: 15px 0;">⭐ ${anime.score || 'N/A'} | ${anime.type} | ${anime.status}</p>
-                <div style="background:#252729; padding:15px; border-radius:8px; line-height:1.6; font-size:0.95rem;">
+                <div style="background:#252729; padding:15px; border-radius:8px; line-height:1.6; font-size:0.95rem; max-height: 200px; overflow-y: auto;">
                     ${anime.synopsis || 'No description available for this title.'}
                 </div>
+                ${trailerHtml}
             </div>
         </div>
     `;
-    document.getElementById('animeModal').style.display = "block";
-}
+    modal.style.display = "block";
 
+    // Stop video when modal closes
+    const closeBtn = document.querySelector('.close-modal');
+    const originalClose = closeBtn.onclick;
+    closeBtn.onclick = () => {
+        body.innerHTML = ""; // This stops the YouTube audio immediately
+        modal.style.display = "none";
+        closeBtn.onclick = originalClose;
+    };
+}
 function toggleHeart(event, index) {
     event.stopPropagation();
     const anime = currentData[index];
