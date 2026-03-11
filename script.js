@@ -1,118 +1,198 @@
-// ... Previous state variables remain ...
-let currentView = 'grid'; 
+let currentYear = 2026;
+let currentSeason = 'spring';
+let searchTimeout;
+let currentData = [];
+let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-// 1. Grouping Logic
-function renderCalendar(list) {
-    const grid = document.getElementById('anime-grid');
-    grid.className = 'calendar-layout';
-    grid.innerHTML = '';
-
-    DAYS.forEach(day => {
-        const dayAnime = list.filter(a => a.broadcast.day === day);
-        const column = document.createElement('div');
-        column.className = 'day-column';
-        column.innerHTML = `<h4>${day}</h4>`;
-        
-        dayAnime.forEach(anime => {
-            column.innerHTML += `
-                <div class="anime-card">
-                    <div style="padding:8px;">
-                        <strong style="display:block; margin-bottom:4px;">${anime.title}</strong>
-                        <span style="color:var(--accent)">${anime.broadcast.time || 'TBA'}</span>
-                    </div>
-                </div>
-            `;
-        });
-        grid.appendChild(column);
-    });
-}
-
-// 2. View Switching Logic
-document.getElementById('setGridView').addEventListener('click', (e) => {
-    switchView('grid', e.target);
-    render(allAnime);
-});
-
-document.getElementById('setCalendarView').addEventListener('click', (e) => {
-    switchView('calendar', e.target);
-    renderCalendar(allAnime);
-});
-
-function switchView(view, btn) {
-    currentView = view;
-    document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const grid = document.getElementById('anime-grid');
-    grid.className = view === 'grid' ? 'grid-layout' : 'calendar-layout';
-}
-
-// Update the original render function to handle the 'grid-layout' class
-function render(list) {
-    const grid = document.getElementById('anime-grid');
-    if (currentView === 'calendar') { renderCalendar(list); return; }
+async function init() {
+    updateWatchlistCount();
     
-    grid.innerHTML = list.map(anime => {
-        const isSaved = watchlist.some(item => item.mal_id === anime.mal_id);
+    // Global Search Debounce
+    document.getElementById('globalSearch').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value;
+        if (query.length > 2) searchTimeout = setTimeout(() => performGlobalSearch(query), 500);
+        else if (query.length === 0) loadSeasonalData();
+    });
+
+    // Toggle Filter Menu
+    document.getElementById('filterBtn').onclick = (e) => {
+        e.stopPropagation();
+        document.getElementById("filterMenu").classList.toggle("show");
+    };
+
+    document.getElementById('toggleWatchlist').onclick = toggleWatchlistView;
+    document.getElementById('snapTop').onclick = () => window.scrollTo({ top: 0, behavior: 'auto' });
+    
+    window.onscroll = () => {
+        const btn = document.getElementById("snapTop");
+        btn.style.display = (window.scrollY > 300) ? "block" : "none";
+    };
+
+    document.querySelector('.close-modal').onclick = closeModal;
+    window.onclick = (e) => { 
+        if (e.target.id === 'animeModal') closeModal();
+        if (!e.target.matches('#filterBtn')) document.getElementById("filterMenu").classList.remove("show");
+    };
+
+    await loadSeasonalData();
+    setInterval(updateTimers, 1000);
+}
+
+async function loadSeasonalData() {
+    document.getElementById('navBar').style.display = 'flex';
+    const grid = document.getElementById('anime-grid');
+    document.getElementById('viewTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
+    grid.innerHTML = '<div class="loader">Syncing Season...</div>';
+    try {
+        const res = await fetch(`https://api.jikan.moe/v4/seasons/${currentYear}/${currentSeason}`);
+        const { data } = await res.json();
+        currentData = data;
+        renderCards(data);
+    } catch (e) { grid.innerHTML = "API Timeout. Please refresh."; }
+}
+
+async function performGlobalSearch(query) {
+    document.getElementById('navBar').style.display = 'none';
+    const grid = document.getElementById('anime-grid');
+    document.getElementById('viewTitle').innerText = `GLOBAL SEARCH: ${query}`;
+    try {
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=24`);
+        const { data } = await res.json();
+        currentData = data;
+        renderCards(data);
+    } catch (e) { grid.innerHTML = "Search Error."; }
+}
+
+function renderCards(data) {
+    const grid = document.getElementById('anime-grid');
+    if (!data || data.length === 0) { grid.innerHTML = "No results found."; return; }
+    grid.innerHTML = data.map((anime, index) => {
+        const day = anime.broadcast?.day || "null";
+        const time = anime.broadcast?.time || "00:00";
         return `
-            <div class="anime-card">
-                <button class="save-btn ${isSaved ? 'active' : ''}" onclick="toggleSave(${anime.mal_id})">♥</button>
-                <img src="${anime.images.jpg.image_url}" loading="lazy" style="width:100%; height:250px; object-fit:cover;">
-                <div style="padding:12px;">
-                    <h3>${anime.title}</h3>
-                    <p>${anime.broadcast.day || 'Unknown Day'}</p>
+            <div class="anime-card" onclick="showDetails(${index})">
+                <div class="poster-container">
+                    <img class="poster" src="${anime.images.jpg.large_image_url}">
+                    <div class="countdown-timer" data-day="${day}" data-time="${time}">Calculating...</div>
+                </div>
+                <div class="info">
+                    <h3>${anime.title_english || anime.title}</h3>
+                    <p style="font-size:0.75rem; color:#3db4f2;">${getESTTime(day, time)}</p>
                 </div>
             </div>`;
     }).join('');
+    updateTimers();
 }
 
-// Initial call
-init();
+function showDetails(index) {
+    const anime = currentData[index];
+    const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
+    const body = document.getElementById('modalBody');
+    
+    const trailerHtml = anime.trailer?.youtube_id 
+        ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${anime.trailer.youtube_id}" allowfullscreen></iframe></div>`
+        : `<div style="background:#252729; padding:20px; border-radius:10px; margin-top:20px; text-align:center; color:#777;">Trailer not available</div>`;
 
-// Toggle the filter menu
-document.getElementById('filterBtn').onclick = function(e) {
-    e.stopPropagation();
-    document.getElementById("filterMenu").classList.toggle("show");
+    body.innerHTML = `
+        <div style="display:flex; gap:25px; flex-wrap:wrap;">
+            <img src="${anime.images.jpg.large_image_url}" style="width:230px; border-radius:10px;">
+            <div style="flex:1; min-width:300px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <h2 style="color:var(--accent); margin:0;">${anime.title_english || anime.title}</h2>
+                    <button class="heart-btn ${isAdded ? 'active' : ''}" onclick="toggleHeart(event, ${index})">❤</button>
+                </div>
+                <p>⭐ ${anime.score || 'N/A'} | ${anime.type} | ${anime.status}</p>
+                <div style="background:#252729; padding:15px; border-radius:8px; font-size:0.9rem; max-height:150px; overflow-y:auto;">
+                    ${anime.synopsis || 'No description available.'}
+                </div>
+                ${trailerHtml}
+            </div>
+        </div>
+    `;
+    document.getElementById('animeModal').style.display = "block";
 }
 
-// Close menu if user clicks outside
-window.onclick = function(event) {
-    if (!event.target.matches('#filterBtn')) {
-        var dropdowns = document.getElementsByClassName("filter-content");
-        for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
-        }
-    }
+function closeModal() {
+    document.getElementById('modalBody').innerHTML = ""; // Stops video audio
+    document.getElementById('animeModal').style.display = "none";
 }
 
 function sortData(type) {
-    if (!currentData || currentData.length === 0) return;
-
-    switch(type) {
-        case 'pop': // Most Members/Popularity
-            currentData.sort((a, b) => (a.members < b.members ? 1 : -1));
-            break;
-        case 'score': // Highest Score
-            currentData.sort((a, b) => (b.score - a.score));
-            break;
-        case 'alpha': // A-Z
-            currentData.sort((a, b) => {
-                let titleA = (a.title_english || a.title).toLowerCase();
-                let titleB = (b.title_english || b.title).toLowerCase();
-                return titleA.localeCompare(titleB);
-            });
-            break;
-        case 'newest': // Release Date Desc
-            currentData.sort((a, b) => new Date(b.aired.from) - new Date(a.aired.from));
-            break;
-        case 'oldest': // Release Date Asc
-            currentData.sort((a, b) => new Date(a.aired.from) - new Date(b.aired.from));
-            break;
-    }
-
-    renderCards(currentData); // Re-render the grid with new order
+    if (!currentData) return;
+    if (type === 'pop') currentData.sort((a,b) => b.members - a.members);
+    if (type === 'score') currentData.sort((a,b) => b.score - a.score);
+    if (type === 'alpha') currentData.sort((a,b) => (a.title_english || a.title).localeCompare(b.title_english || b.title));
+    if (type === 'newest') currentData.sort((a,b) => new Date(b.aired.from) - new Date(a.aired.from));
+    if (type === 'oldest') currentData.sort((a,b) => new Date(a.aired.from) - new Date(b.aired.from));
+    renderCards(currentData);
 }
+
+function toggleHeart(e, index) {
+    e.stopPropagation();
+    const anime = currentData[index];
+    const wIdx = watchlist.findIndex(item => item.mal_id === anime.mal_id);
+    if (wIdx > -1) { watchlist.splice(wIdx, 1); e.target.classList.remove('active'); }
+    else { watchlist.push(anime); e.target.classList.add('active'); }
+    localStorage.setItem('myWatchlist', JSON.stringify(watchlist));
+    updateWatchlistCount();
+}
+
+function toggleWatchlistView() {
+    if (watchlist.length === 0) { alert("Watchlist is empty!"); return; }
+    document.getElementById('navBar').style.display = 'none';
+    document.getElementById('viewTitle').innerText = "MY WATCHLIST";
+    currentData = watchlist;
+    renderCards(watchlist);
+}
+
+function updateWatchlistCount() { document.getElementById('wCount').innerText = watchlist.length; }
+
+function updateTimers() {
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+    document.querySelectorAll('.countdown-timer').forEach(timer => {
+        const day = timer.dataset.day; const time = timer.dataset.time;
+        if (!day || day === "null") { timer.innerText = "Schedule TBA"; return; }
+        const nextAir = getNextAirEST(day, time);
+        const diff = nextAir - now;
+        if (diff <= 0 && diff > -3600000) { timer.innerText = "AIRING NOW"; timer.style.color = "#ff4d4d"; }
+        else {
+            const d = Math.floor(diff / 86400000); const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000); const s = Math.floor((diff % 60000) / 1000);
+            timer.innerText = `${d}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+            timer.style.color = "#00ffcc";
+        }
+    });
+}
+
+function getNextAirEST(jDay, jTime) {
+    const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+    const [h, m] = jTime.split(':').map(Number);
+    let estH = h - 14; 
+    let targetD = (days.indexOf(jDay) - (h - 14 < 0 ? 1 : 0) + 7) % 7;
+    const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+    let dWait = (targetD - nowEST.getDay() + 7) % 7;
+    if (dWait === 0 && (nowEST.getHours() > (estH < 0 ? estH + 24 : estH))) dWait = 7;
+    const next = new Date(nowEST);
+    next.setDate(nowEST.getDate() + dWait);
+    next.setHours(estH < 0 ? estH + 24 : estH, m, 0, 0);
+    return next;
+}
+
+function getESTTime(day, time) {
+    if (day === "null") return "Schedule TBA";
+    const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+    let [h, m] = time.split(':').map(Number);
+    let estH = h - 14; let dIdx = days.indexOf(day);
+    if (estH < 0) { estH += 24; dIdx = (dIdx - 1 + 7) % 7; }
+    return `${days[dIdx]} at ${String(estH).padStart(2, '0')}:${String(m).padStart(2, '0')} EST`;
+}
+
+function changeYear(n) { currentYear += n; updateSeason(); }
+function updateSeason() {
+    currentSeason = document.getElementById('seasonPicker').value;
+    document.getElementById('displayYear').innerText = currentYear;
+    loadSeasonalData();
+}
+
+init();
