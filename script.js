@@ -69,3 +69,50 @@ function render(list) {
 
 // Initial call
 init();
+
+// Toggle the filter menu
+document.getElementById('filterBtn').onclick = function(e) {
+    e.stopPropagation();
+    document.getElementById("filterMenu").classList.toggle("show");
+}
+
+// Close menu if user clicks outside
+window.onclick = function(event) {
+    if (!event.target.matches('#filterBtn')) {
+        var dropdowns = document.getElementsByClassName("filter-content");
+        for (var i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+}
+
+function sortData(type) {
+    if (!currentData || currentData.length === 0) return;
+
+    switch(type) {
+        case 'pop': // Most Members/Popularity
+            currentData.sort((a, b) => (a.members < b.members ? 1 : -1));
+            break;
+        case 'score': // Highest Score
+            currentData.sort((a, b) => (b.score - a.score));
+            break;
+        case 'alpha': // A-Z
+            currentData.sort((a, b) => {
+                let titleA = (a.title_english || a.title).toLowerCase();
+                let titleB = (b.title_english || b.title).toLowerCase();
+                return titleA.localeCompare(titleB);
+            });
+            break;
+        case 'newest': // Release Date Desc
+            currentData.sort((a, b) => new Date(b.aired.from) - new Date(a.aired.from));
+            break;
+        case 'oldest': // Release Date Asc
+            currentData.sort((a, b) => new Date(a.aired.from) - new Date(b.aired.from));
+            break;
+    }
+
+    renderCards(currentData); // Re-render the grid with new order
+}
