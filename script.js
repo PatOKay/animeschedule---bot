@@ -1,17 +1,12 @@
 let currentYear = 2026;
-let currentSeason = 'winter';
+let currentSeason = 'spring';
 let searchTimeout;
 let currentData = [];
+let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
 
 async function init() {
-    const params = new URLSearchParams(window.location.search);
-    currentYear = parseInt(params.get('year')) || 2026;
-    currentSeason = params.get('season') || 'winter';
+    updateWatchlistCount();
     
-    document.getElementById('displayYear').innerText = currentYear;
-    document.getElementById('seasonPicker').value = currentSeason;
-    
-    // Search & Scroll
     document.getElementById('globalSearch').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value;
@@ -19,41 +14,38 @@ async function init() {
         else if (query.length === 0) loadSeasonalData();
     });
 
-    window.onscroll = () => scrollFunction();
+    document.getElementById('toggleWatchlist').onclick = toggleWatchlistView;
     document.getElementById('snapTop').onclick = () => window.scrollTo({ top: 0, behavior: 'auto' });
+    window.onscroll = () => {
+        const btn = document.getElementById("snapTop");
+        btn.style.display = (window.scrollY > 300) ? "block" : "none";
+    };
 
-    // Modal close logic
     document.querySelector('.close-modal').onclick = () => document.getElementById('animeModal').style.display = "none";
-    window.onclick = (event) => { if (event.target == document.getElementById('animeModal')) document.getElementById('animeModal').style.display = "none"; };
-
+    
     await loadSeasonalData();
-    updateTimers(); 
     setInterval(updateTimers, 1000);
 }
 
-function scrollFunction() {
-    const btn = document.getElementById("snapTop");
-    btn.style.display = (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) ? "block" : "none";
-}
-
 async function loadSeasonalData() {
+    document.getElementById('navBar').style.display = 'flex';
     const grid = document.getElementById('anime-grid');
     document.getElementById('viewTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    grid.innerHTML = '<div class="loader">Syncing...</div>';
-
+    grid.innerHTML = '<div class="loader">Syncing Season...</div>';
     try {
         const res = await fetch(`https://api.jikan.moe/v4/seasons/${currentYear}/${currentSeason}`);
         const { data } = await res.json();
         currentData = data;
         renderCards(data);
-    } catch (e) { grid.innerHTML = "API Error. Please refresh."; }
+    } catch (e) { grid.innerHTML = "API Timeout. Please refresh."; }
 }
 
 async function performGlobalSearch(query) {
+    document.getElementById('navBar').style.display = 'none';
     const grid = document.getElementById('anime-grid');
-    document.getElementById('viewTitle').innerText = `SEARCH: ${query.toUpperCase()}`;
+    document.getElementById('viewTitle').innerText = `GLOBAL SEARCH: ${query}`;
     try {
-        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}`);
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=24`);
         const { data } = await res.json();
         currentData = data;
         renderCards(data);
@@ -77,26 +69,59 @@ function renderCards(data) {
                 </div>
             </div>`;
     }).join('');
+    updateTimers();
 }
 
 function showDetails(index) {
     const anime = currentData[index];
-    const modal = document.getElementById('animeModal');
+    const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
     const body = document.getElementById('modalBody');
     
     body.innerHTML = `
-        <div style="display:flex; gap:20px; flex-wrap:wrap;">
-            <img src="${anime.images.jpg.large_image_url}" style="width:200px; border-radius:10px;">
+        <div style="display:flex; gap:25px; flex-wrap:wrap;">
+            <img src="${anime.images.jpg.large_image_url}" style="width:230px; border-radius:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
             <div style="flex:1; min-width:300px;">
-                <h2 style="color:var(--accent); margin-top:0;">${anime.title_english || anime.title}</h2>
-                <p><strong>Score:</strong> ⭐ ${anime.score || 'N/A'}</p>
-                <p><strong>Genres:</strong> ${anime.genres.map(g => g.name).join(', ')}</p>
-                <p><strong>Status:</strong> ${anime.status}</p>
-                <p style="line-height:1.6; color:#ccc;">${anime.synopsis || 'No synopsis available.'}</p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <h2 style="color:var(--accent); margin:0;">${anime.title_english || anime.title}</h2>
+                    <button class="heart-btn ${isAdded ? 'active' : ''}" onclick="toggleHeart(event, ${index})">❤</button>
+                </div>
+                <p style="margin: 15px 0;">⭐ ${anime.score || 'N/A'} | ${anime.type} | ${anime.status}</p>
+                <div style="background:#252729; padding:15px; border-radius:8px; line-height:1.6; font-size:0.95rem;">
+                    ${anime.synopsis || 'No description available for this title.'}
+                </div>
             </div>
         </div>
     `;
-    modal.style.display = "block";
+    document.getElementById('animeModal').style.display = "block";
+}
+
+function toggleHeart(event, index) {
+    event.stopPropagation();
+    const anime = currentData[index];
+    const wIndex = watchlist.findIndex(item => item.mal_id === anime.mal_id);
+    
+    if (wIndex > -1) {
+        watchlist.splice(wIndex, 1);
+        event.target.classList.remove('active');
+    } else {
+        watchlist.push(anime);
+        event.target.classList.add('active');
+    }
+    
+    localStorage.setItem('myWatchlist', JSON.stringify(watchlist));
+    updateWatchlistCount();
+}
+
+function toggleWatchlistView() {
+    if (watchlist.length === 0) { alert("Your watchlist is empty!"); return; }
+    document.getElementById('navBar').style.display = 'none';
+    document.getElementById('viewTitle').innerText = "MY WATCHLIST";
+    currentData = watchlist;
+    renderCards(watchlist);
+}
+
+function updateWatchlistCount() {
+    document.getElementById('wCount').innerText = watchlist.length;
 }
 
 function updateTimers() {
