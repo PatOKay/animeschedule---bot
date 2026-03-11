@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniSchedule | EST Global Tracker</title>
+    <title>AniSchedule | Watchlist & Global Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="dark">
@@ -12,11 +12,11 @@
         <div class="controls">
             <div class="tz-badge">EST Mode</div>
             <input type="text" id="globalSearch" placeholder="Search any anime (Global)...">
-            <button id="toggleWatchlist">Watchlist (0)</button>
+            <button id="toggleWatchlist">Watchlist (<span id="wCount">0</span>)</button>
         </div>
     </header>
 
-    <div class="live-selector-container">
+    <div class="live-selector-container" id="navBar">
         <div class="live-selector">
             <button class="nav-arrow" onclick="changeYear(-1)">❮</button>
             <div class="current-selection">
@@ -33,9 +33,9 @@
     </div>
 
     <main>
-        <h2 id="viewTitle" style="padding: 0 5%; color: #3db4f2;">WINTER 2026</h2>
+        <h2 id="viewTitle" style="padding: 0 5%; color: #3db4f2;">SPRING 2026</h2>
         <div id="anime-grid" class="grid-layout">
-            <div class="loader">Loading Archive...</div>
+            <div class="loader">Initializing...</div>
         </div>
     </main>
 
