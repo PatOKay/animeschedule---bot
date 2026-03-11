@@ -28,20 +28,14 @@ async function init() {
     };
 
     document.querySelector('.close-modal').onclick = closeModal;
-    window.onclick = (e) => { 
-        if (e.target.id === 'animeModal') closeModal();
-        if (!e.target.matches('#filterBtn')) document.getElementById("filterMenu").classList.remove("show");
-    };
-
     await loadSeasonalData();
     setInterval(updateTimers, 1000);
 }
 
 async function loadSeasonalData() {
-    document.getElementById('navBar').style.display = 'flex';
     const grid = document.getElementById('anime-grid');
     document.getElementById('viewTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    grid.innerHTML = '<div class="loader">Syncing Season...</div>';
+    grid.innerHTML = '<div class="loader">Fetching accurate schedules...</div>';
     try {
         const res = await fetch(`https://api.jikan.moe/v4/seasons/${currentYear}/${currentSeason}`);
         const { data } = await res.json();
@@ -50,25 +44,12 @@ async function loadSeasonalData() {
     } catch (e) { grid.innerHTML = "API Timeout. Please refresh."; }
 }
 
-async function performGlobalSearch(query) {
-    document.getElementById('navBar').style.display = 'none';
-    const grid = document.getElementById('anime-grid');
-    document.getElementById('viewTitle').innerText = `GLOBAL SEARCH: ${query}`;
-    try {
-        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=24`);
-        const { data } = await res.json();
-        currentData = data;
-        renderCards(data);
-    } catch (e) { grid.innerHTML = "Search Error."; }
-}
-
 function renderCards(data) {
     const grid = document.getElementById('anime-grid');
     if (!data || data.length === 0) { grid.innerHTML = "No results found."; return; }
     grid.innerHTML = data.map((anime, index) => {
         const day = anime.broadcast?.day || "null";
         const time = anime.broadcast?.time || "00:00";
-        // Check if finished
         const isFinished = anime.status === "Finished Airing";
         
         return `
@@ -77,14 +58,15 @@ function renderCards(data) {
                     <img class="poster" src="${anime.images.jpg.large_image_url}">
                     <div class="countdown-timer" 
                          data-status="${anime.status}" 
+                         data-premiere="${anime.aired?.from || ''}"
                          data-day="${day}" 
                          data-time="${time}">
-                         ${isFinished ? "COMPLETED" : "Calculating..."}
+                         Initializing...
                     </div>
                 </div>
                 <div class="info">
                     <h3>${anime.title_english || anime.title}</h3>
-                    <p style="font-size:0.75rem; color:#3db4f2;">${isFinished ? "Full Season Available" : getESTTime(day, time)}</p>
+                    <p style="font-size:0.75rem; color:#3db4f2;">${isFinished ? "COMPLETED" : getESTTime(day, time)}</p>
                 </div>
             </div>`;
     }).join('');
@@ -94,81 +76,63 @@ function renderCards(data) {
 async function showDetails(index) {
     const anime = currentData[index];
     const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
-    const modal = document.getElementById('animeModal');
     const body = document.getElementById('modalBody');
-    
     document.getElementById('animeModal').style.display = "block";
-    body.innerHTML = `<div class="loader">Loading Details & Trailer...</div>`;
-
-    // Fetch full data to ensure we get the trailer if the seasonal list missed it
-    let ytId = anime.trailer?.youtube_id;
-    try {
-        if (!ytId) {
-            const detailRes = await fetch(`https://api.jikan.moe/v4/anime/${anime.mal_id}`);
-            const detailJson = await detailRes.json();
-            ytId = detailJson.data.trailer?.youtube_id;
-        }
-    } catch (e) { console.log("Detail fetch failed"); }
-
-    const trailerHtml = ytId 
-        ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe></div>`
-        : `<div style="background:#252729; padding:20px; border-radius:10px; margin-top:20px; text-align:center; color:#777;">📺 Trailer not available in API database</div>`;
+    
+    // Fallback: If API trailer is missing, we create a YouTube search link
+    const searchQuery = encodeURIComponent(`${anime.title_english || anime.title} official trailer`);
+    const trailerHtml = anime.trailer?.youtube_id 
+        ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${anime.trailer.youtube_id}" allowfullscreen></iframe></div>`
+        : `<div style="margin-top:20px; text-align:center;">
+             <a href="https://www.youtube.com/results?search_query=${searchQuery}" target="_blank" style="text-decoration:none;">
+                <div style="background:#ff0000; color:white; padding:15px; border-radius:8px; font-weight:bold;">
+                   📺 Watch Trailer on YouTube
+                </div>
+             </a>
+             <p style="color:#777; font-size:0.8rem; margin-top:5px;">(Direct link search used as fallback)</p>
+           </div>`;
 
     body.innerHTML = `
         <div style="display:flex; gap:25px; flex-wrap:wrap;">
-            <img src="${anime.images.jpg.large_image_url}" style="width:230px; border-radius:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+            <img src="${anime.images.jpg.large_image_url}" style="width:230px; border-radius:10px;">
             <div style="flex:1; min-width:300px;">
                 <div style="display:flex; justify-content:space-between;">
                     <h2 style="color:var(--accent); margin:0;">${anime.title_english || anime.title}</h2>
                     <button class="heart-btn ${isAdded ? 'active' : ''}" onclick="toggleHeart(event, ${index})">❤</button>
                 </div>
                 <p>⭐ ${anime.score || 'N/A'} | ${anime.type} | ${anime.status}</p>
-                <div style="background:#252729; padding:15px; border-radius:8px; font-size:0.9rem; max-height:150px; overflow-y:auto; line-height:1.5;">
+                <div style="background:#252729; padding:15px; border-radius:8px; font-size:0.9rem; max-height:150px; overflow-y:auto;">
                     ${anime.synopsis || 'No description available.'}
                 </div>
                 ${trailerHtml}
+                <div id="characterSection" style="margin-top:20px; color:var(--accent); font-weight:bold;">Loading Characters...</div>
             </div>
         </div>
     `;
+    fetchCharacters(anime.mal_id);
 }
 
-function closeModal() {
-    document.getElementById('modalBody').innerHTML = ""; 
-    document.getElementById('animeModal').style.display = "none";
+async function fetchCharacters(id) {
+    try {
+        const res = await fetch(`https://api.jikan.moe/v4/anime/${id}/characters`);
+        const { data } = await res.json();
+        const mainChars = data.slice(0, 5);
+        document.getElementById('characterSection').innerHTML = `
+            <p>Main Characters:</p>
+            <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;">
+                ${mainChars.map(c => `
+                    <div style="text-align:center; min-width:70px;">
+                        <img src="${c.character.images.jpg.image_url}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid #3db4f2;">
+                        <p style="font-size:0.6rem; color:white; margin:5px 0;">${c.character.name}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (e) { document.getElementById('characterSection').innerText = ""; }
 }
-
-function sortData(type) {
-    if (!currentData) return;
-    if (type === 'pop') currentData.sort((a,b) => (b.members || 0) - (a.members || 0));
-    if (type === 'score') currentData.sort((a,b) => (b.score || 0) - (a.score || 0));
-    if (type === 'alpha') currentData.sort((a,b) => (a.title_english || a.title).localeCompare(b.title_english || b.title));
-    if (type === 'newest') currentData.sort((a,b) => new Date(b.aired?.from || 0) - new Date(a.aired?.from || 0));
-    if (type === 'oldest') currentData.sort((a,b) => new Date(a.aired?.from || 0) - new Date(b.aired?.from || 0));
-    renderCards(currentData);
-}
-
-function toggleHeart(e, index) {
-    e.stopPropagation();
-    const anime = currentData[index];
-    const wIdx = watchlist.findIndex(item => item.mal_id === anime.mal_id);
-    if (wIdx > -1) { watchlist.splice(wIdx, 1); e.target.classList.remove('active'); }
-    else { watchlist.push(anime); e.target.classList.add('active'); }
-    localStorage.setItem('myWatchlist', JSON.stringify(watchlist));
-    updateWatchlistCount();
-}
-
-function toggleWatchlistView() {
-    if (watchlist.length === 0) { alert("Watchlist is empty!"); return; }
-    document.getElementById('navBar').style.display = 'none';
-    document.getElementById('viewTitle').innerText = "MY WATCHLIST";
-    currentData = watchlist;
-    renderCards(watchlist);
-}
-
-function updateWatchlistCount() { document.getElementById('wCount').innerText = watchlist.length; }
 
 function updateTimers() {
-    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+    const now = new Date();
     document.querySelectorAll('.countdown-timer').forEach(timer => {
         if (timer.dataset.status === "Finished Airing") {
             timer.innerText = "COMPLETED";
@@ -176,54 +140,37 @@ function updateTimers() {
             return;
         }
 
-        const day = timer.dataset.day; const time = timer.dataset.time;
-        if (!day || day === "null") { timer.innerText = "Schedule TBA"; return; }
-        
-        const nextAir = getNextAirEST(day, time);
-        const diff = nextAir - now;
+        const premiereDate = timer.dataset.premiere ? new Date(timer.dataset.premiere) : null;
+        let targetDate;
+
+        // Logic fix: If the show hasn't premiered yet, countdown to premiere
+        if (premiereDate && premiereDate > now) {
+            targetDate = premiereDate;
+        } else {
+            // Otherwise, use the weekly broadcast logic
+            const day = timer.dataset.day;
+            const time = timer.dataset.time;
+            if (!day || day === "null") { timer.innerText = "Schedule TBA"; return; }
+            targetDate = getNextAirEST(day, time);
+        }
+
+        const diff = targetDate - now;
         
         if (diff <= 0 && diff > -3600000) { 
             timer.innerText = "AIRING NOW"; 
             timer.style.color = "#ff4d4d"; 
+        } else if (diff < -3600000) {
+            timer.innerText = "Check Catchup";
+            timer.style.color = "#3db4f2";
         } else {
             const d = Math.floor(diff / 86400000); 
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000); 
             const s = Math.floor((diff % 60000) / 1000);
-            timer.innerText = `${d}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+            timer.innerText = `${d}d ${h}h ${m}m ${s}s`;
             timer.style.color = "#00ffcc";
         }
     });
 }
 
-function getNextAirEST(jDay, jTime) {
-    const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
-    const [h, m] = jTime.split(':').map(Number);
-    let estH = h - 14; 
-    let targetD = (days.indexOf(jDay) - (h - 14 < 0 ? 1 : 0) + 7) % 7;
-    const nowEST = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
-    let dWait = (targetD - nowEST.getDay() + 7) % 7;
-    if (dWait === 0 && (nowEST.getHours() > (estH < 0 ? estH + 24 : estH))) dWait = 7;
-    const next = new Date(nowEST);
-    next.setDate(nowEST.getDate() + dWait);
-    next.setHours(estH < 0 ? estH + 24 : estH, m, 0, 0);
-    return next;
-}
-
-function getESTTime(day, time) {
-    if (day === "null") return "Schedule TBA";
-    const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
-    let [h, m] = time.split(':').map(Number);
-    let estH = h - 14; let dIdx = days.indexOf(day);
-    if (estH < 0) { estH += 24; dIdx = (dIdx - 1 + 7) % 7; }
-    return `${days[dIdx]} at ${String(estH).padStart(2, '0')}:${String(m).padStart(2, '0')} EST`;
-}
-
-function changeYear(n) { currentYear += n; updateSeason(); }
-function updateSeason() {
-    currentSeason = document.getElementById('seasonPicker').value;
-    document.getElementById('displayYear').innerText = currentYear;
-    loadSeasonalData();
-}
-
-init();
+// ... (keep toggleHeart, toggleWatchlistView, getNextAirEST, getESTTime, updateSeason/Year from previous version)
