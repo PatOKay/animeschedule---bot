@@ -1,6 +1,7 @@
 let currentYear = 2026;
 let currentSeason = 'winter';
 let searchTimeout;
+let currentData = [];
 
 async function init() {
     const params = new URLSearchParams(window.location.search);
@@ -10,21 +11,20 @@ async function init() {
     document.getElementById('displayYear').innerText = currentYear;
     document.getElementById('seasonPicker').value = currentSeason;
     
+    // Search & Scroll
     document.getElementById('globalSearch').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value;
-        if (query.length > 2) {
-            searchTimeout = setTimeout(() => performGlobalSearch(query), 500);
-        } else if (query.length === 0) {
-            loadSeasonalData();
-        }
+        if (query.length > 2) searchTimeout = setTimeout(() => performGlobalSearch(query), 500);
+        else if (query.length === 0) loadSeasonalData();
     });
 
-    // Fast Scroll Logic
-    window.onscroll = function() { scrollFunction() };
-    document.getElementById('snapTop').onclick = () => {
-        window.scrollTo({ top: 0, behavior: 'auto' }); // 'auto' provides the fast/instant jump
-    };
+    window.onscroll = () => scrollFunction();
+    document.getElementById('snapTop').onclick = () => window.scrollTo({ top: 0, behavior: 'auto' });
+
+    // Modal close logic
+    document.querySelector('.close-modal').onclick = () => document.getElementById('animeModal').style.display = "none";
+    window.onclick = (event) => { if (event.target == document.getElementById('animeModal')) document.getElementById('animeModal').style.display = "none"; };
 
     await loadSeasonalData();
     updateTimers(); 
@@ -33,11 +33,7 @@ async function init() {
 
 function scrollFunction() {
     const btn = document.getElementById("snapTop");
-    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-        btn.style.display = "block";
-    } else {
-        btn.style.display = "none";
-    }
+    btn.style.display = (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) ? "block" : "none";
 }
 
 async function loadSeasonalData() {
@@ -48,19 +44,29 @@ async function loadSeasonalData() {
     try {
         const res = await fetch(`https://api.jikan.moe/v4/seasons/${currentYear}/${currentSeason}`);
         const { data } = await res.json();
+        currentData = data;
         renderCards(data);
-    } catch (e) {
-        grid.innerHTML = "API Error. Please refresh.";
-    }
+    } catch (e) { grid.innerHTML = "API Error. Please refresh."; }
+}
+
+async function performGlobalSearch(query) {
+    const grid = document.getElementById('anime-grid');
+    document.getElementById('viewTitle').innerText = `SEARCH: ${query.toUpperCase()}`;
+    try {
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}`);
+        const { data } = await res.json();
+        currentData = data;
+        renderCards(data);
+    } catch (e) { grid.innerHTML = "Search Error."; }
 }
 
 function renderCards(data) {
     const grid = document.getElementById('anime-grid');
-    grid.innerHTML = data.map(anime => {
+    grid.innerHTML = data.map((anime, index) => {
         const day = anime.broadcast?.day || "null";
         const time = anime.broadcast?.time || "00:00";
         return `
-            <div class="anime-card">
+            <div class="anime-card" onclick="showDetails(${index})">
                 <div class="poster-container">
                     <img class="poster" src="${anime.images.jpg.large_image_url}">
                     <div class="countdown-timer" data-day="${day}" data-time="${time}">Calculating...</div>
@@ -73,24 +79,36 @@ function renderCards(data) {
     }).join('');
 }
 
+function showDetails(index) {
+    const anime = currentData[index];
+    const modal = document.getElementById('animeModal');
+    const body = document.getElementById('modalBody');
+    
+    body.innerHTML = `
+        <div style="display:flex; gap:20px; flex-wrap:wrap;">
+            <img src="${anime.images.jpg.large_image_url}" style="width:200px; border-radius:10px;">
+            <div style="flex:1; min-width:300px;">
+                <h2 style="color:var(--accent); margin-top:0;">${anime.title_english || anime.title}</h2>
+                <p><strong>Score:</strong> ⭐ ${anime.score || 'N/A'}</p>
+                <p><strong>Genres:</strong> ${anime.genres.map(g => g.name).join(', ')}</p>
+                <p><strong>Status:</strong> ${anime.status}</p>
+                <p style="line-height:1.6; color:#ccc;">${anime.synopsis || 'No synopsis available.'}</p>
+            </div>
+        </div>
+    `;
+    modal.style.display = "block";
+}
+
 function updateTimers() {
     const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
     document.querySelectorAll('.countdown-timer').forEach(timer => {
         const day = timer.dataset.day;
         const time = timer.dataset.time;
-
-        if (!day || day === "null") {
-            timer.innerText = "Schedule TBA";
-            return;
-        }
-
+        if (!day || day === "null") { timer.innerText = "Schedule TBA"; return; }
         const nextAir = getNextAirEST(day, time);
         const diff = nextAir - now;
-
-        if (diff <= 0 && diff > -3600000) {
-            timer.innerText = "AIRING NOW";
-            timer.style.color = "#ff4d4d";
-        } else {
+        if (diff <= 0 && diff > -3600000) { timer.innerText = "AIRING NOW"; timer.style.color = "#ff4d4d"; }
+        else {
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
