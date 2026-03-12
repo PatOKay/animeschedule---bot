@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AniSchedule | EST Tracker</title>
+    <title>AniSchedule | Ultimate EST Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,28 +12,23 @@
         <div class="controls">
             <div class="tz-badge">EST Mode</div>
             <input type="text" id="globalSearch" placeholder="Search any anime...">
-            
             <div class="filter-wrapper">
-                <button id="filterBtn" class="icon-btn">☰ Filter & Sort</button>
+                <button id="filterBtn" class="icon-btn">☰ Filter</button>
                 <div id="filterMenu" class="filter-content">
-                    <div class="menu-label">Sort By</div>
                     <button onclick="sortData('pop')">Most Popular</button>
                     <button onclick="sortData('score')">Highest Rated</button>
                     <button onclick="sortData('alpha')">Alphabetical (A-Z)</button>
-                    <div class="menu-label">Quick Genres</div>
                     <button onclick="filterGenre('Action')">Action</button>
                     <button onclick="filterGenre('Comedy')">Comedy</button>
-                    <button onclick="filterGenre('Fantasy')">Fantasy</button>
-                    <button onclick="filterGenre('Romance')">Romance</button>
                 </div>
             </div>
             <button id="toggleWatchlist">Watchlist (<span id="wCount">0</span>)</button>
         </div>
     </header>
 
-    <div class="live-selector-container" id="navBar">
-        <div class="live-selector">
-            <button onclick="changeYear(-1)">❮</button>
+    <div class="live-selector-container">
+        <div class="selector-row">
+            <button class="nav-arrow" onclick="changeYear(-1)">❮</button>
             <div class="current-selection">
                 <span id="displayYear">2026</span>
                 <select id="seasonPicker" onchange="updateSeason()">
@@ -43,14 +38,14 @@
                     <option value="fall">Fall</option>
                 </select>
             </div>
-            <button onclick="changeYear(1)">❯</button>
+            <button class="nav-arrow" onclick="changeYear(1)">❯</button>
         </div>
     </div>
 
     <main>
         <h2 id="viewTitle" style="padding: 0 5%; color: #3db4f2;">SPRING 2026</h2>
         <div id="anime-grid" class="grid-layout">
-            <div class="loader">Loading Archive...</div>
+            <div class="loader">Initializing Archive...</div>
         </div>
     </main>
 
