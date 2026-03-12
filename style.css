@@ -1,89 +1,27 @@
-/* ... Previous Styles Remain ... */
+:root { --bg: #0b0c0d; --card: #1a1c1e; --text: #ffffff; --accent: #3db4f2; --heart: #ff4d6d; }
+body { background: var(--bg) !important; color: var(--text); font-family: sans-serif; margin: 0; scroll-behavior: smooth; }
+header { background: #151719; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2f31; }
+#globalSearch { background: #2d2f31; border: 1px solid #444; color: white; padding: 8px; border-radius: 5px; width: 200px; }
 
-/* Calendar Specific Layout */
-.calendar-layout {
-    display: flex !important;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 20px;
-    align-items: flex-start;
-}
+.filter-wrapper { position: relative; }
+.filter-content { display: none; position: absolute; right: 0; background: #1a1c1e; border: 1px solid var(--accent); z-index: 100; border-radius: 5px; min-width: 150px; }
+.filter-content button { color: white; padding: 10px; width: 100%; text-align: left; background: none; border: none; cursor: pointer; }
+.filter-content button:hover { background: #2d2f31; }
+.show { display: block; }
 
-.day-column {
-    min-width: 200px;
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 10px;
-}
+.live-selector-container { display: flex; justify-content: center; padding: 20px 0; background: #151719; }
+.selector-row { display: flex; align-items: center; gap: 15px; background: var(--card); border-radius: 8px; padding: 5px 15px; }
+.nav-arrow { background: #2d2f31; color: white; border: none; border-radius: 4px; padding: 10px; cursor: pointer; }
 
-.day-column h4 {
-    text-align: center;
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 10px;
-}
+.grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 0 5%; margin-top: 20px; }
+.anime-card { background: var(--card); border-radius: 10px; overflow: hidden; position: relative; }
+.poster { width: 100%; height: 300px; object-fit: cover; cursor: pointer; }
+.countdown-timer { background: rgba(0,0,0,0.8); color: #00ffcc; text-align: center; padding: 5px; font-size: 0.8rem; font-family: monospace; }
 
-/* Minimize cards for Calendar View */
-.calendar-layout .anime-card {
-    margin-bottom: 10px;
-    font-size: 0.8rem;
-}
+#snapTop { display: none; position: fixed; bottom: 30px; right: 30px; z-index: 99; border: none; background-color: var(--accent); color: white; cursor: pointer; padding: 15px; border-radius: 50%; width: 50px; height: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-.calendar-layout .poster-container {
-    height: 120px;
-}
-
-.view-toggle {
-    background: var(--card);
-    padding: 4px;
-    border-radius: 8px;
-    display: flex;
-}
-
-.view-toggle button {
-    background: none;
-    border: none;
-    padding: 5px 12px;
-    border-radius: 6px;
-    color: var(--text-dim);
-    cursor: pointer;
-}
-
-.view-toggle button.active {
-    background: var(--accent);
-    color: white;
-}
-
-/* Live Pulse Badge */
-.live-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ff4d4d;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    z-index: 10;
-    box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
-}
-
-.pulse-dot {
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-    animation: pulse-animation 1.5s infinite;
-}
-
-@keyframes pulse-animation {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-}
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; }
+.modal-content { background: var(--card); margin: 5% auto; padding: 25px; width: 85%; max-width: 750px; border-radius: 15px; position: relative; color: white; }
+.close-modal { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; color: var(--accent); }
+.add-watchlist { border: none; background: transparent; cursor: pointer; font-size: 1.5rem; color: #555; }
+.add-watchlist.active { color: var(--heart); }
