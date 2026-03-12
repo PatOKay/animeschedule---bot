@@ -1,4 +1,3 @@
-// INITIALIZE SUPABASE WITH YOUR KEYS
 const SUPABASE_URL = 'https://aqromksnrykuakcmvhjg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GgfGatSj5nAsT_LijOZgRQ_vrIozPii';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -7,9 +6,8 @@ let currentYear = 2026, currentSeason = 'spring', currentData = [], searchTimeou
 let watchlist = []; 
 
 async function init() {
-    await syncWatchlist(); // Load cloud data first
+    await syncWatchlist();
     
-    // Search Engine
     document.getElementById('globalSearch').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value.trim();
@@ -17,12 +15,10 @@ async function init() {
         else if (query.length === 0) loadSeasonalData();
     });
 
-    // Snap to Top
     const snapBtn = document.getElementById("snapTop");
     window.onscroll = () => snapBtn.style.display = (window.scrollY > 300) ? "block" : "none";
     snapBtn.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
 
-    // UI Helpers
     document.getElementById('filterBtn').onclick = (e) => { e.stopPropagation(); document.getElementById("filterMenu").classList.toggle("show"); };
     window.onclick = () => document.getElementById("filterMenu").classList.remove("show");
     document.querySelector('.close-modal').onclick = () => document.getElementById('animeModal').style.display = "none";
@@ -32,11 +28,12 @@ async function init() {
     setInterval(updateTimers, 1000);
 }
 
-// --- DATABASE LOGIC ---
+// --- UPDATED DATABASE LOGIC (Matching 'Anime Sched') ---
 
 async function syncWatchlist() {
-    const { data, error } = await supabase.from('watchlist').select('*');
-    if (!error) {
+    // Matches your table name: Anime Sched
+    const { data, error } = await supabase.from('Anime Sched').select('*');
+    if (!error && data) {
         watchlist = data.map(item => item.anime_data);
         updateWatchlistCount();
     }
@@ -46,22 +43,19 @@ async function addToWatchlist(i) {
     const anime = currentData[i];
     if (watchlist.some(item => item.mal_id === anime.mal_id)) return;
 
-    // Insert into Supabase 'watchlist' table
-    const { error } = await supabase.from('watchlist').insert([{ anime_data: anime }]);
+    const { error } = await supabase.from('Anime Sched').insert([{ anime_data: anime }]);
     
     if (!error) {
         watchlist.push(anime);
         updateWatchlistCount();
         renderCards(currentData);
-    } else {
-        console.error("Database error:", error.message);
     }
 }
 
 async function removeFromWatchlist(i) {
     const animeId = currentData[i].mal_id;
-    // Delete from Supabase where mal_id inside the JSON matches
-    const { error } = await supabase.from('watchlist').delete().filter('anime_data->mal_id', 'eq', animeId);
+    // Matches your table name: Anime Sched
+    const { error } = await supabase.from('Anime Sched').delete().filter('anime_data->mal_id', 'eq', animeId);
 
     if (!error) {
         watchlist = watchlist.filter(item => item.mal_id !== animeId);
