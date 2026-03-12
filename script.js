@@ -68,36 +68,51 @@ function renderCards(data) {
     grid.innerHTML = data.map((anime, index) => {
         const day = anime.broadcast?.day || "null";
         const time = anime.broadcast?.time || "00:00";
+        // Check if finished
+        const isFinished = anime.status === "Finished Airing";
+        
         return `
             <div class="anime-card" onclick="showDetails(${index})">
                 <div class="poster-container">
                     <img class="poster" src="${anime.images.jpg.large_image_url}">
-                    <div class="countdown-timer" data-day="${day}" data-time="${time}">Calculating...</div>
+                    <div class="countdown-timer" 
+                         data-status="${anime.status}" 
+                         data-day="${day}" 
+                         data-time="${time}">
+                         ${isFinished ? "COMPLETED" : "Calculating..."}
+                    </div>
                 </div>
                 <div class="info">
                     <h3>${anime.title_english || anime.title}</h3>
-                    <p style="font-size:0.75rem; color:#3db4f2;">${getESTTime(day, time)}</p>
+                    <p style="font-size:0.75rem; color:#3db4f2;">${isFinished ? "Full Season Available" : getESTTime(day, time)}</p>
                 </div>
             </div>`;
     }).join('');
     updateTimers();
 }
 
-function showDetails(index) {
+async function showDetails(index) {
     const anime = currentData[index];
     const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
+    const modal = document.getElementById('animeModal');
     const body = document.getElementById('modalBody');
     
-    // Improved Trailer Check
+    document.getElementById('animeModal').style.display = "block";
+    body.innerHTML = `<div class="loader">Loading Details & Trailer...</div>`;
+
+    // Fetch full data to ensure we get the trailer if the seasonal list missed it
     let ytId = anime.trailer?.youtube_id;
-    if(!ytId && anime.trailer?.url) {
-        const urlMatch = anime.trailer.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-        if(urlMatch) ytId = urlMatch[1];
-    }
+    try {
+        if (!ytId) {
+            const detailRes = await fetch(`https://api.jikan.moe/v4/anime/${anime.mal_id}`);
+            const detailJson = await detailRes.json();
+            ytId = detailJson.data.trailer?.youtube_id;
+        }
+    } catch (e) { console.log("Detail fetch failed"); }
 
     const trailerHtml = ytId 
         ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe></div>`
-        : `<div style="background:#252729; padding:20px; border-radius:10px; margin-top:20px; text-align:center; color:#777;">📺 Trailer not currently indexed in database</div>`;
+        : `<div style="background:#252729; padding:20px; border-radius:10px; margin-top:20px; text-align:center; color:#777;">📺 Trailer not available in API database</div>`;
 
     body.innerHTML = `
         <div style="display:flex; gap:25px; flex-wrap:wrap;">
@@ -115,7 +130,6 @@ function showDetails(index) {
             </div>
         </div>
     `;
-    document.getElementById('animeModal').style.display = "block";
 }
 
 function closeModal() {
@@ -156,14 +170,26 @@ function updateWatchlistCount() { document.getElementById('wCount').innerText = 
 function updateTimers() {
     const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
     document.querySelectorAll('.countdown-timer').forEach(timer => {
+        if (timer.dataset.status === "Finished Airing") {
+            timer.innerText = "COMPLETED";
+            timer.style.color = "#aaa";
+            return;
+        }
+
         const day = timer.dataset.day; const time = timer.dataset.time;
         if (!day || day === "null") { timer.innerText = "Schedule TBA"; return; }
+        
         const nextAir = getNextAirEST(day, time);
         const diff = nextAir - now;
-        if (diff <= 0 && diff > -3600000) { timer.innerText = "AIRING NOW"; timer.style.color = "#ff4d4d"; }
-        else {
-            const d = Math.floor(diff / 86400000); const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000); const s = Math.floor((diff % 60000) / 1000);
+        
+        if (diff <= 0 && diff > -3600000) { 
+            timer.innerText = "AIRING NOW"; 
+            timer.style.color = "#ff4d4d"; 
+        } else {
+            const d = Math.floor(diff / 86400000); 
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000); 
+            const s = Math.floor((diff % 60000) / 1000);
             timer.innerText = `${d}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
             timer.style.color = "#00ffcc";
         }
