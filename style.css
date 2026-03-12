@@ -25,3 +25,33 @@ header { background: #151719; padding: 15px 5%; display: flex; justify-content: 
 .close-modal { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; color: var(--accent); }
 .add-watchlist { border: none; background: transparent; cursor: pointer; font-size: 1.5rem; color: #555; }
 .add-watchlist.active { color: var(--heart); }
+
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    right: 0;
+    background-color: #151719;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    border-left: 1px solid var(--accent);
+}
+
+.pirate-list { list-style: none; padding: 20px; }
+.pirate-list li { padding: 15px; border-bottom: 1px solid #2d2f31; }
+.pirate-list a { color: var(--accent); text-decoration: none; font-weight: bold; }
+.pirate-list a:hover { color: white; }
+
+.close-sidebar {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    font-size: 36px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
