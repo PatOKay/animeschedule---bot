@@ -4,10 +4,15 @@ let watchlist = JSON.parse(localStorage.getItem('myWatchlist')) || [];
 async function init() {
     updateWatchlistCount();
     
+    // FIXED SEARCH ENGINE LOGIC
     document.getElementById('globalSearch').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
-        if (e.target.value.length > 2) searchTimeout = setTimeout(() => performSearch(e.target.value), 500);
-        else if (e.target.value.length === 0) loadSeasonalData();
+        const query = e.target.value.trim();
+        if (query.length > 2) {
+            searchTimeout = setTimeout(() => performSearch(query), 500);
+        } else if (query.length === 0) {
+            loadSeasonalData();
+        }
     });
 
     document.getElementById('filterBtn').onclick = (e) => {
@@ -23,6 +28,24 @@ async function init() {
     setInterval(updateTimers, 1000);
 }
 
+// FIXED: Global Search Function
+async function performSearch(query) {
+    const grid = document.getElementById('anime-grid');
+    // Hide the year/season picker when searching
+    document.querySelector('.live-selector-container').style.display = 'none';
+    document.getElementById('viewTitle').innerText = `SEARCH: ${query.toUpperCase()}`;
+    grid.innerHTML = '<div class="loader">Searching Database...</div>';
+    
+    try {
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=20`);
+        const json = await res.json();
+        currentData = json.data;
+        renderCards(currentData);
+    } catch (e) { 
+        grid.innerHTML = "Search failed. Try again."; 
+    }
+}
+
 async function loadSeasonalData() {
     const grid = document.getElementById('anime-grid');
     document.querySelector('.live-selector-container').style.display = 'flex';
@@ -33,7 +56,7 @@ async function loadSeasonalData() {
         const json = await res.json();
         currentData = json.data;
         renderCards(currentData);
-    } catch (e) { grid.innerHTML = "Connection Error. Please refresh."; }
+    } catch (e) { grid.innerHTML = "Connection Error."; }
 }
 
 function renderCards(data) {
@@ -44,9 +67,15 @@ function renderCards(data) {
         const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
         return `
             <div class="anime-card">
-                <img class="poster" src="${anime.images.jpg.large_image_url}" onclick="showDetails(${i})">
-                <div class="countdown-timer" data-status="${anime.status}" data-premiere="${anime.aired.from}" data-day="${anime.broadcast.day}" data-time="${anime.broadcast.time}">
-                    Syncing...
+                <div style="position:relative;">
+                    <img class="poster" src="${anime.images.jpg.large_image_url}" onclick="showDetails(${i})">
+                    <div class="countdown-timer" 
+                         data-status="${anime.status}" 
+                         data-premiere="${anime.aired.from}" 
+                         data-day="${anime.broadcast.day}" 
+                         data-time="${anime.broadcast.time}">
+                        Syncing...
+                    </div>
                 </div>
                 <div style="padding:10px; display:flex; justify-content:space-between; align-items:center;">
                     <h4 onclick="showDetails(${i})" style="margin:0; font-size:0.85rem; cursor:pointer; height:2.4em; overflow:hidden; flex:1;">${anime.title_english || anime.title}</h4>
@@ -83,6 +112,7 @@ async function showDetails(i) {
         </div>`;
 }
 
+// UPDATED: Added Seconds to Timer logic
 function updateTimers() {
     const now = new Date();
     document.querySelectorAll('.countdown-timer').forEach(el => {
@@ -95,10 +125,15 @@ function updateTimers() {
         const target = (premiere > now) ? premiere : getNextAirEST(el.dataset.day, el.dataset.time);
         const diff = target - now;
 
-        if (diff < 0) { el.innerText = "AIRING NOW"; el.style.color = "#ff4d4d"; }
-        else {
-            const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000);
-            el.innerText = `${d}d ${h}h ${m}m`;
+        if (diff < 0) { 
+            el.innerText = "AIRING NOW"; 
+            el.style.color = "#ff4d4d"; 
+        } else {
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000); // SECONDS ADDED HERE
+            el.innerText = `${d}d ${h}h ${m}m ${s}s`;
             el.style.color = "#00ffcc";
         }
     });
@@ -132,7 +167,12 @@ function addToWatchlist(i) {
 function removeFromWatchlist(i) {
     watchlist = watchlist.filter(item => item.mal_id !== currentData[i].mal_id);
     localStorage.setItem('myWatchlist', JSON.stringify(watchlist));
-    updateWatchlistCount(); renderCards(currentData);
+    updateWatchlistCount(); 
+    if (document.getElementById('viewTitle').innerText === "MY WATCHLIST") {
+        renderCards(watchlist);
+    } else {
+        renderCards(currentData);
+    }
 }
 
 function toggleWatchlistView() {
