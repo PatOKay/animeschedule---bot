@@ -90,17 +90,10 @@ function renderCards(data) {
     updateTimers();
 }
 
-// 5. DATABASE ACTIONS (Protected by Auth)
-async function addToWatchlist(i) {
-    const anime = currentData[i];
-    if (watchlist.some(item => item.mal_id === anime.mal_id)) return;
-
-    const { error } = await supabaseClient.from('Anime Sched').insert([{ anime_data: anime }]);
-    if (!error) {
-        watchlist.push(anime);
-        updateWatchlistCount();
-        renderCards(currentData);
-    }
+// Ensure you are inserting the anime_data
+const { error } = await supabaseClient
+    .from('Anime Sched')
+    .insert([{ anime_data: anime }]);
 }
 
 async function removeFromWatchlist(i) {
