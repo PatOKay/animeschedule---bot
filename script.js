@@ -1,7 +1,12 @@
-// 1. INITIALIZE SUPABASE
-const SUPABASE_URL = 'https://aqromksnrykuakcmvhjg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_GgfGatSj5nAsT_LijOZgRQ_vrIozPii';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// 1. INITIALIZE (Fixed the 'already declared' error)
+// We check if it exists first to prevent the crash you saw in the console
+if (typeof supabase === 'undefined') {
+    const SUPABASE_URL = 'https://aqromksnrykuakcmvhjg.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_GgfGatSj5nAsT_LijOZgRQ_vrIozPii';
+    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} else {
+    var supabaseClient = supabase; 
+}
 
 // 2. GLOBAL STATE
 let currentYear = 2026;
@@ -10,85 +15,56 @@ let currentData = [];
 let searchTimeout;
 let watchlist = [];
 
-// 3. STARTUP FUNCTION
+// 3. STARTUP
 async function init() {
-    // Set up UI listeners immediately
     setupEventListeners();
     
-    // Load anime schedule first so the user sees content right away
+    // Load anime cards IMMEDIATELY so you don't stay stuck on "Connecting..."
     loadSeasonalData();
 
-    // Sync with Supabase in the background
+    // Sync database in background
     try {
-        await syncWatchlist();
-        console.log("Database sync successful.");
+        const { data, error } = await supabaseClient.from('Anime Sched').select('*');
+        if (!error && data) {
+            watchlist = data.map(item => item.anime_data);
+            updateWatchlistCount();
+            if (currentData.length > 0) renderCards(currentData);
+        }
     } catch (err) {
-        console.warn("Database sync delayed. Working in local mode.");
+        console.warn("Database sync delayed.");
     }
 
-    // Start the countdown clock
     setInterval(updateTimers, 1000);
 }
 
-// 4. DATABASE LOGIC (Targets 'Anime Sched' table)
-async function syncWatchlist() {
-    const { data, error } = await supabase.from('Anime Sched').select('*');
-    if (!error && data) {
-        // Extract the anime object from the JSON column
-        watchlist = data.map(item => item.anime_data);
-        updateWatchlistCount();
-        // Refresh the grid to show the red hearts if data is already loaded
-        if (currentData.length > 0) renderCards(currentData);
-    } else if (error) {
-        console.error("Supabase Select Error:", error.message);
-    }
-}
-
+// 4. DATABASE ACTIONS
 async function addToWatchlist(i) {
     const anime = currentData[i];
-    // Prevent duplicates
     if (watchlist.some(item => item.mal_id === anime.mal_id)) return;
 
-    // UI Update (Immediate/Optimistic)
     watchlist.push(anime);
     updateWatchlistCount();
     renderCards(currentData);
 
-    // Database Update (Background)
-    const { error } = await supabase.from('Anime Sched').insert([{ anime_data: anime }]);
-    if (error) {
-        console.error("Supabase Insert Error:", error.message);
-        alert("Permission denied. Ensure RLS policies are set to 'anon' in Supabase.");
-    }
+    const { error } = await supabaseClient.from('Anime Sched').insert([{ anime_data: anime }]);
+    if (error) console.error("Save failed. Check Supabase Policies:", error.message);
 }
 
 async function removeFromWatchlist(i) {
     const animeId = currentData[i].mal_id;
-    
-    // UI Update
     watchlist = watchlist.filter(item => item.mal_id !== animeId);
     updateWatchlistCount();
     
-    if (document.getElementById('viewTitle').innerText === "MY WATCHLIST") {
-        renderCards(watchlist);
-    } else {
-        renderCards(currentData);
-    }
+    renderCards(document.getElementById('viewTitle').innerText === "MY WATCHLIST" ? watchlist : currentData);
 
-    // Database Update
-    const { error } = await supabase.from('Anime Sched')
-        .delete()
-        .filter('anime_data->mal_id', 'eq', animeId);
-    
-    if (error) console.error("Supabase Delete Error:", error.message);
+    await supabaseClient.from('Anime Sched').delete().filter('anime_data->mal_id', 'eq', animeId);
 }
 
-// 5. CORE ENGINE (Jikan API & Rendering)
+// 5. CORE ENGINE
 async function loadSeasonalData() {
     const grid = document.getElementById('anime-grid');
-    document.querySelector('.live-selector-container').style.display = 'flex';
     document.getElementById('viewTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    grid.innerHTML = '<div class="loader">Fetching Spring Schedule...</div>';
+    grid.innerHTML = '<div class="loader">Loading Schedule...</div>';
     
     try {
         const res = await fetch(`https://api.jikan.moe/v4/seasons/${currentYear}/${currentSeason}`);
@@ -96,90 +72,65 @@ async function loadSeasonalData() {
         currentData = json.data;
         renderCards(currentData);
     } catch (e) {
-        grid.innerHTML = "Error loading anime. Check your connection.";
+        grid.innerHTML = "Error fetching anime data.";
     }
 }
 
 function renderCards(data) {
     const grid = document.getElementById('anime-grid');
-    if (!data || data.length === 0) { 
-        grid.innerHTML = "<p style='padding: 20px;'>No anime found in this category.</p>"; 
-        return; 
-    }
+    if (!data || data.length === 0) { grid.innerHTML = "No results found."; return; }
     
     grid.innerHTML = data.map((anime, i) => {
         const isAdded = watchlist.some(item => item.mal_id === anime.mal_id);
         return `
             <div class="anime-card">
                 <img class="poster" src="${anime.images.jpg.large_image_url}" onclick="showDetails(${i})">
-                <div class="countdown-timer" 
-                     data-status="${anime.status}" 
-                     data-premiere="${anime.aired.from}" 
-                     data-day="${anime.broadcast.day}" 
-                     data-time="${anime.broadcast.time}">
-                    Syncing...
+                <div class="countdown-timer" data-status="${anime.status}" data-premiere="${anime.aired.from}" data-day="${anime.broadcast.day}" data-time="${anime.broadcast.time}">
+                    Calculating...
                 </div>
                 <div style="padding:10px; display:flex; justify-content:space-between; align-items:center;">
-                    <h4 onclick="showDetails(${i})" style="margin:0; font-size:0.85rem; cursor:pointer; height:2.4em; overflow:hidden; flex:1;">
-                        ${anime.title_english || anime.title}
-                    </h4>
-                    <button class="add-watchlist ${isAdded ? 'active' : ''}" 
-                            onclick="${isAdded ? `removeFromWatchlist(${i})` : `addToWatchlist(${i})`}">
-                        ❤
-                    </button>
+                    <h4 onclick="showDetails(${i})" style="margin:0; font-size:0.85rem; cursor:pointer; height:2.4em; overflow:hidden; flex:1;">${anime.title_english || anime.title}</h4>
+                    <button class="add-watchlist ${isAdded ? 'active' : ''}" onclick="${isAdded ? `removeFromWatchlist(${i})` : `addToWatchlist(${i})`}">❤</button>
                 </div>
             </div>`;
     }).join('');
     updateTimers();
 }
 
-// 6. MODAL & UI UTILITIES
 async function showDetails(i) {
     const anime = currentData[i];
     const body = document.getElementById('modalBody');
     document.getElementById('animeModal').style.display = "block";
-    
     const ytId = anime.trailer?.youtube_id;
+    
     const trailerHtml = ytId ? 
-        `<iframe width="100%" height="300" src="https://www.youtube.com/embed/${ytId}" style="margin-top:15px; border-radius:10px;" frameborder="0" allowfullscreen></iframe>` : 
-        `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(anime.title)}+trailer" target="_blank" style="display:block; margin-top:15px; background:#ff0000; color:white; text-align:center; padding:12px; border-radius:8px; text-decoration:none; font-weight:bold;">📺 Search Trailer on YouTube</a>`;
+        `<iframe width="100%" height="300" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen style="margin-top:15px; border-radius:10px;"></iframe>` : 
+        `<p style="margin-top:15px; text-align:center;">No trailer available.</p>`;
 
     body.innerHTML = `
         <div style="display:flex; gap:20px; flex-wrap:wrap;">
             <img src="${anime.images.jpg.image_url}" style="width:200px; border-radius:10px;">
             <div style="flex:1; min-width:300px;">
                 <h2 style="margin:0; color:#3db4f2;">${anime.title_english || anime.title}</h2>
-                <p>⭐ Score: ${anime.score || 'N/A'} | Status: ${anime.status}</p>
-                <div style="background:#252729; padding:15px; border-radius:8px; font-size:0.9rem; max-height:150px; overflow-y:auto; line-height:1.4;">
-                    ${anime.synopsis || 'No description available.'}
-                </div>
+                <p>⭐ ${anime.score || 'N/A'}</p>
+                <div style="background:#252729; padding:15px; border-radius:8px; font-size:0.9rem; max-height:150px; overflow-y:auto;">${anime.synopsis || 'No description.'}</div>
                 ${trailerHtml}
             </div>
         </div>`;
 }
 
+// 6. HELPERS
 function updateTimers() {
     const now = new Date();
     document.querySelectorAll('.countdown-timer').forEach(el => {
-        if (el.dataset.status === "Finished Airing") {
-            el.innerText = "COMPLETED";
-            el.style.color = "#888";
-            return;
-        }
+        if (el.dataset.status === "Finished Airing") { el.innerText = "COMPLETED"; return; }
         const premiere = new Date(el.dataset.premiere);
         const target = (premiere > now) ? premiere : getNextAirEST(el.dataset.day, el.dataset.time);
         const diff = target - now;
-
-        if (diff < 0) {
-            el.innerText = "AIRING NOW";
-            el.style.color = "#ff4d4d";
-        } else {
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
+        if (diff < 0) { el.innerText = "AIRING NOW"; el.style.color = "#ff4d4d"; } 
+        else {
+            const d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
             el.innerText = `${d}d ${h}h ${m}m ${s}s`;
-            el.style.color = "#00ffcc";
         }
     });
 }
@@ -187,7 +138,6 @@ function updateTimers() {
 function getNextAirEST(day, time) {
     const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
     const targetDay = days.indexOf(day);
-    if (targetDay === -1) return new Date(Date.now() + 604800000); 
     const now = new Date();
     let res = new Date(now);
     res.setDate(now.getDate() + (targetDay + 7 - now.getDay()) % 7);
@@ -201,16 +151,7 @@ function setupEventListeners() {
         if (query.length > 2) searchTimeout = setTimeout(() => performSearch(query), 500);
         else if (query.length === 0) loadSeasonalData();
     });
-
-    const snapBtn = document.getElementById("snapTop");
-    window.onscroll = () => snapBtn.style.display = (window.scrollY > 300) ? "block" : "none";
-    snapBtn.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
-
-    document.getElementById('filterBtn').onclick = (e) => { 
-        e.stopPropagation(); 
-        document.getElementById("filterMenu").classList.toggle("show"); 
-    };
-    
+    document.getElementById('filterBtn').onclick = (e) => { e.stopPropagation(); document.getElementById("filterMenu").classList.toggle("show"); };
     window.onclick = () => document.getElementById("filterMenu").classList.remove("show");
     document.querySelector('.close-modal').onclick = () => document.getElementById('animeModal').style.display = "none";
     document.getElementById('toggleWatchlist').onclick = toggleWatchlistView;
@@ -218,26 +159,16 @@ function setupEventListeners() {
 
 async function performSearch(query) {
     const grid = document.getElementById('anime-grid');
-    document.querySelector('.live-selector-container').style.display = 'none';
-    document.getElementById('viewTitle').innerText = `SEARCH: ${query.toUpperCase()}`;
     grid.innerHTML = '<div class="loader">Searching...</div>';
-    try {
-        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=20`);
-        const json = await res.json();
-        currentData = json.data;
-        renderCards(currentData);
-    } catch (e) { grid.innerHTML = "Search failed."; }
+    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=20`);
+    const json = await res.json();
+    currentData = json.data;
+    renderCards(currentData);
 }
 
-function toggleWatchlistView() { 
-    document.getElementById('viewTitle').innerText = "MY WATCHLIST"; 
-    document.querySelector('.live-selector-container').style.display = 'none'; 
-    renderCards(watchlist); 
-}
-
+function toggleWatchlistView() { document.getElementById('viewTitle').innerText = "MY WATCHLIST"; renderCards(watchlist); }
 function updateWatchlistCount() { document.getElementById('wCount').innerText = watchlist.length; }
 function updateSeason() { currentSeason = document.getElementById('seasonPicker').value; loadSeasonalData(); }
 function changeYear(n) { currentYear += n; document.getElementById('displayYear').innerText = currentYear; loadSeasonalData(); }
 
-// INITIALIZE APP
 init();
