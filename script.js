@@ -172,3 +172,43 @@ function updateSeason() { currentSeason = document.getElementById('seasonPicker'
 function changeYear(n) { currentYear += n; document.getElementById('displayYear').innerText = currentYear; loadSeasonalData(); }
 
 init();
+
+// Keep your existing Supabase configuration here
+const SUPABASE_URL = 'https://aqromksnrykuakcmvhjg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GgfGatSj5nAsT_LijOZgRQ_vrIozPii';
+var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// --- AUTHENTICATION LOGIC ---
+
+document.getElementById('loginBtn').onclick = async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const msg = document.getElementById('authMsg');
+
+    // Attempt Login
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        // If login fails, try to Sign Up (makes it easier for you)
+        const { error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+        if (signUpError) {
+            msg.innerText = signUpError.message;
+        } else {
+            msg.style.color = "#00ffcc";
+            msg.innerText = "Check your email for a confirmation link!";
+        }
+    } else {
+        // Success!
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('sidebarBtn').style.display = 'block';
+        init(); // Start the main app
+    }
+};
+
+function toggleSidebar() {
+    const sb = document.getElementById("pirateSidebar");
+    sb.style.width = sb.style.width === "250px" ? "0" : "250px";
+}
+
+// Ensure the rest of your init(), loadSeasonalData(), and renderCards() 
+// functions follow below as they were in the previous working version
