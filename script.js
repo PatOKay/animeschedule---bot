@@ -1,3 +1,4 @@
+// INITIALIZE SUPABASE
 const SUPABASE_URL = 'https://aqromksnrykuakcmvhjg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_GgfGatSj5nAsT_LijOZgRQ_vrIozPii';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -6,8 +7,14 @@ let currentYear = 2026, currentSeason = 'spring', currentData = [], searchTimeou
 let watchlist = []; 
 
 async function init() {
-    await syncWatchlist();
+    // Attempt to sync, but move on if it fails so the app doesn't hang
+    try {
+        await syncWatchlist(); 
+    } catch (err) {
+        console.warn("Database sync delayed or failed, loading interface anyway...");
+    }
     
+    // Search Engine Setup
     document.getElementById('globalSearch').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value.trim();
@@ -15,25 +22,31 @@ async function init() {
         else if (query.length === 0) loadSeasonalData();
     });
 
+    // Snap to Top
     const snapBtn = document.getElementById("snapTop");
     window.onscroll = () => snapBtn.style.display = (window.scrollY > 300) ? "block" : "none";
     snapBtn.onclick = () => window.scrollTo({top: 0, behavior: 'smooth'});
 
+    // UI Listeners
     document.getElementById('filterBtn').onclick = (e) => { e.stopPropagation(); document.getElementById("filterMenu").classList.toggle("show"); };
     window.onclick = () => document.getElementById("filterMenu").classList.remove("show");
     document.querySelector('.close-modal').onclick = () => document.getElementById('animeModal').style.display = "none";
     document.getElementById('toggleWatchlist').onclick = toggleWatchlistView;
     
+    // Core Load
     await loadSeasonalData();
     setInterval(updateTimers, 1000);
 }
 
-// --- UPDATED DATABASE LOGIC (Matching 'Anime Sched') ---
+// --- DATABASE LOGIC ---
 
 async function syncWatchlist() {
-    // Matches your table name: Anime Sched
     const { data, error } = await supabase.from('Anime Sched').select('*');
-    if (!error && data) {
+    if (error) {
+        console.error("Supabase Error:", error.message);
+        return;
+    }
+    if (data) {
         watchlist = data.map(item => item.anime_data);
         updateWatchlistCount();
     }
@@ -49,12 +62,13 @@ async function addToWatchlist(i) {
         watchlist.push(anime);
         updateWatchlistCount();
         renderCards(currentData);
+    } else {
+        alert("Could not save to cloud. Check your Supabase RLS policies!");
     }
 }
 
 async function removeFromWatchlist(i) {
     const animeId = currentData[i].mal_id;
-    // Matches your table name: Anime Sched
     const { error } = await supabase.from('Anime Sched').delete().filter('anime_data->mal_id', 'eq', animeId);
 
     if (!error) {
@@ -65,32 +79,21 @@ async function removeFromWatchlist(i) {
     }
 }
 
-// --- CORE ENGINE ---
-
-async function performSearch(query) {
-    const grid = document.getElementById('anime-grid');
-    document.querySelector('.live-selector-container').style.display = 'none';
-    document.getElementById('viewTitle').innerText = `SEARCH: ${query.toUpperCase()}`;
-    grid.innerHTML = '<div class="loader">Searching...</div>';
-    try {
-        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=20`);
-        const json = await res.json();
-        currentData = json.data;
-        renderCards(currentData);
-    } catch (e) { grid.innerHTML = "Search failed."; }
-}
+// --- DISPLAY LOGIC ---
 
 async function loadSeasonalData() {
     const grid = document.getElementById('anime-grid');
     document.querySelector('.live-selector-container').style.display = 'flex';
     document.getElementById('viewTitle').innerText = `${currentSeason.toUpperCase()} ${currentYear}`;
-    grid.innerHTML = '<div class="loader">Loading...</div>';
+    grid.innerHTML = '<div class="loader">Loading Schedule...</div>';
     try {
         const res = await fetch(`https://api.jikan.moe/v4/seasons/${currentYear}/${currentSeason}`);
         const json = await res.json();
         currentData = json.data;
         renderCards(currentData);
-    } catch (e) { grid.innerHTML = "Connection Error."; }
+    } catch (e) { 
+        grid.innerHTML = "Error fetching data from Jikan API."; 
+    }
 }
 
 function renderCards(data) {
@@ -161,6 +164,19 @@ function sortData(type) {
     if (type === 'score') currentData.sort((a,b) => (b.score || 0) - (a.score || 0));
     if (type === 'alpha') currentData.sort((a,b) => (a.title_english || a.title).toLowerCase().localeCompare((b.title_english || b.title).toLowerCase()));
     renderCards(currentData);
+}
+
+async function performSearch(query) {
+    const grid = document.getElementById('anime-grid');
+    document.querySelector('.live-selector-container').style.display = 'none';
+    document.getElementById('viewTitle').innerText = `SEARCH: ${query.toUpperCase()}`;
+    grid.innerHTML = '<div class="loader">Searching...</div>';
+    try {
+        const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=20`);
+        const json = await res.json();
+        currentData = json.data;
+        renderCards(currentData);
+    } catch (e) { grid.innerHTML = "Search failed."; }
 }
 
 function toggleWatchlistView() { document.getElementById('viewTitle').innerText = "MY WATCHLIST"; document.querySelector('.live-selector-container').style.display = 'none'; renderCards(watchlist); }
