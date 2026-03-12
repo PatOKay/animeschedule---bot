@@ -3,7 +3,6 @@ let currentYear = 2026, currentSeason = 'spring', currentData = [], watchlist = 
 async function init() {
     updateWatchlistCount();
     
-    // Search Engine Fix
     document.getElementById('globalSearch').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value;
@@ -67,13 +66,25 @@ function renderCards(data) {
     updateTimers();
 }
 
-// Genre Filter Function
 function filterGenre(genreName) {
     const filtered = currentData.filter(anime => 
         anime.genres.some(g => g.name === genreName)
     );
     renderCards(filtered);
     document.getElementById('viewTitle').innerText = `${genreName.toUpperCase()} - Results`;
+}
+
+function sortData(type) {
+    if (type === 'pop') currentData.sort((a,b) => (b.members || 0) - (a.members || 0));
+    if (type === 'score') currentData.sort((a,b) => (b.score || 0) - (a.score || 0));
+    if (type === 'alpha') {
+        currentData.sort((a,b) => {
+            const titleA = (a.title_english || a.title).toLowerCase();
+            const titleB = (b.title_english || b.title).toLowerCase();
+            return titleA.localeCompare(titleB);
+        });
+    }
+    renderCards(currentData);
 }
 
 async function showDetails(i) {
@@ -132,13 +143,6 @@ function getNextAirEST(day, time) {
     let res = new Date(now);
     res.setDate(now.getDate() + (targetDay + 7 - now.getDay()) % 7);
     return res;
-}
-
-function sortData(type) {
-    if (type === 'pop') currentData.sort((a,b) => (b.members || 0) - (a.members || 0));
-    if (type === 'score') currentData.sort((a,b) => (b.score || 0) - (a.score || 0));
-    if (type === 'alpha') currentData.sort((a,b) => (a.title_english || a.title).localeCompare(b.title_english || b.title));
-    renderCards(currentData);
 }
 
 function updateWatchlistCount() { document.getElementById('wCount').innerText = watchlist.length; }
