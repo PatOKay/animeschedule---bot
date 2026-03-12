@@ -58,5 +58,27 @@
     </div>
 
     <script src="script.js"></script>
+    <div id="authOverlay" class="modal" style="display: flex;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <h2>Member Login</h2>
+        <input type="email" id="email" placeholder="Email" style="width:90%; padding:10px; margin:10px 0;">
+        <input type="password" id="password" placeholder="Password" style="width:90%; padding:10px; margin:10px 0;">
+        <button id="loginBtn" style="width:95%; padding:10px; background:#3db4f2; border:none; color:white; font-weight:bold; cursor:pointer;">Login / Sign Up</button>
+        <p id="authMsg" style="color: #ff4d6d; font-size: 0.8rem;"></p>
+    </div>
+</div>
+
+<div id="pirateSidebar" class="sidebar">
+    <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
+    <h3>🏴‍☠️ Streaming Archive</h3>
+    <ul class="pirate-list">
+        <li><a href="https://aniwave.to" target="_blank">AniWave</a></li>
+        <li><a href="https://hianime.to" target="_blank">HiAnime</a></li>
+        <li><a href="https://gogoanime3.co" target="_blank">GogoAnime</a></li>
+        <li><a href="https://9animetv.to" target="_blank">9Anime</a></li>
+    </ul>
+</div>
+
+<button id="sidebarBtn" style="display:none;" onclick="toggleSidebar()">📂 Sites</button>
 </body>
 </html>
